@@ -74,10 +74,18 @@
                     log(arr,msg)
                 },
                 make_drag_handler(dir, actions) {
-                    return (ev) => {if (this.drag_started) {this.drag_continue(dir, ev, actions)} else {this.drag_start(dir, ev)}}
+                    return (ev) => {
+                        if (this.drag_started) {
+                            this.drag_continue(dir, ev, actions);
+                        } else {
+                            this.drag_start(dir, ev);
+                        }
+                    }
                 },
                 make_touch_handler(action_name) {
-                    return (ev) => {this.action(action_name)}
+                    return (ev) => {
+                        this.action(action_name);
+                    }
                 },
                 drag_start(dir, ev) {
                     this.drag_started = true;
