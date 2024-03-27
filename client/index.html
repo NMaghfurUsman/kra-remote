@@ -127,7 +127,7 @@
     <link rel="stylesheet" href="/style.css"></a>
 </head>
 <body>
-    <div id="app" style="padding: 0px; margin: 0px">
+    <div id="app" style="padding: 0px; margin: 0px; touch-action: none">
         <div id="pad">
             <div class="grid action-item col flat-left small-dot" v-touch-class="'touched'"
                 v-touch:drag="make_drag_handler('left', {'up': 'action:increase_brush_size', 'down':'action:decrease_brush_size'})" 
