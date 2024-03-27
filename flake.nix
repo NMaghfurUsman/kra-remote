@@ -33,9 +33,7 @@
                   packages = [ pkgs.krita pkgs.python3Packages.pyqt5 pkgs.xwayland pkgs.i3];
                   enterShell = ''
                     echo "Dev Shell for Krita Remote"
-                    export DISPLAY=:9
                     export PYTHONPATH="${pkgs.python3Packages.pyqt5}/lib/python3.11/site-packages/:$PYTHONPATH"
-                    echo "\$DISPLAY=$DISPLAY"
                     echo "\$PYTHONPATH=$PYTHONPATH"
                   '';
 
