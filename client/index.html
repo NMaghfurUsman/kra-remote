@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+
+<head>
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, interactive-widget=resizes-content"/>
+    <title>Krita Remote</title>
+    <script type="module">
+        import { createApp } from 'https://unpkg.com/vue@3.4.21/dist/vue.esm-browser.js'
+        import vue3TouchEvents from "./vue3-touch-events.js"
+
+        const log = (arr, body) => {
+            arr.push({body: body})
+        }
+
+        const dummy_connection = true
+        const send = (socket, msg) => {
+            if (!dummy_connection) {
+                socket.send(msg)
+            }
+        }
+
+        const app = createApp({
+            data() {
+                return {
+                    dummy_connection: dummy_connection,
+                    connected: false,
+                    socket: null,
+                    address: "localhost:9999",
+                    events: [],
+                    dragging: false,
+                    drag_started: false,
+                    drag_origin_y: 0,
+                }
+            },
+            methods: {
+                connect() {
+                    this.socket = new WebSocket("ws://"+this.address);
+                    this.socket.addEventListener("open", (event) => {
+                        this.connected = true;
+                        log(this.events, "socked opened")
+                    });
+                    this.socket.addEventListener("close", (event) => {
+                        this.connected = false;
+                        log(this.events, "socket closed")
+                    });
+                    this.socket.addEventListener("message", (event) => {
+                        log(this.events, "message received:" + event.data)
+                    })
+                },
+                promptConnection(event) {
+                    this.address = prompt("WebSocket connection", this.address)
+                    this.connect()
+
+                },
+                action(action_name) {
+                    navigator.vibrate(50)
+                    log(this.events, action_name)
+                    if (this.socket) {
+                        send(this.socket,"action:"+action_name)
+                    }
+                },
+                press(key) {
+                    log(this.events, "press:"+key)
+                    if (this.socket) {
+                        send(this.socket,"press:"+key)
+                    }
+                },
+                release(key) {
+                    log(this.events, "release:"+key)
+                    if (this.socket) {
+                        send(this.socket,"release:"+key)
+                    }
+                },
+                log(arr, msg) {
+                    log(arr,msg)
+                },
+                make_drag_handler(dir, actions) {
+                    return (ev) => {if (this.drag_started) {this.drag_continue(dir, ev, actions)} else {this.drag_start(dir, ev)}}
+                },
+                make_touch_handler(action_name) {
+                    return (ev) => {this.action(action_name)}
+                },
+                drag_start(dir, ev) {
+                    this.drag_started = true;
+                    if (ev.clientY) {
+                        this.drag_origin_y = ev.clientY;
+                    }
+                    if (ev.touches) {
+                        this.drag_origin_y = ev.touches[0].clientY;
+                    }
+                    log(this.events, "drag start");
+
+                },
+                drag_continue(dir, ev, actions) {
+                    const prev_y = this.drag_origin_y
+                    if (ev.clientY) {
+                        this.drag_origin_y = ev.clientY;
+                    }
+                    if (ev.touches) {
+                        this.drag_origin_y = ev.touches[0].clientY;
+                    }
+                    if (prev_y > this.drag_origin_y) {
+                        log(this.events, actions['up']);
+                        if (this.socket) send(this.socket,actions['up']);
+                    } else {
+                        log(this.events, actions['down']);
+                        if (this.socket) send(this.socket,actions['down']);
+                    }
+                },
+                drag_stop() {
+                    this.drag_started = false;
+                }
+            },
+            mounted() {
+                log(this.events, "app mounted")
+            }
+        }).use(vue3TouchEvents, {})
+        app.mount('#app')
+    </script>
+    <link rel="stylesheet" href="/style.css"></a>
+</head>
+<body>
+    <div id="app" style="padding: 0px; margin: 0px">
+        <div id="pad">
+            <div class="grid action-item col flat-left small-dot" v-touch-class="'touched'"
+                v-touch:drag="make_drag_handler('left', {'up': 'action:increase_brush_size', 'down':'action:decrease_brush_size'})" 
+                v-touch:release="(event) => drag_stop()">
+                <div class="label origin abs"><div class="rotate">size</div></div>
+            </div>
+            <div class="grid action-item mid-c top-r flat-top" style="grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr"
+                v-touch:tap="make_touch_handler('eraser_preset_action')" 
+                v-touch:swipe.right="make_touch_handler('erase_action')"
+                v-touch:swipe.left="make_touch_handler('clear')">
+                <div class="label origin">erase_action</div>
+                <div class="label east"><div class="rotate">erase_action</div></div>
+                <div class="label west"><div class="rotate-alt">clear</div></div>
+            </div>
+            <div class="grid action-item mid-c mid-r"
+                v-touch:tap="make_touch_handler('edit_undo')"
+                v-touch:swipe.right="make_touch_handler('edit_redo')" 
+                v-touch:swipe.bottom="make_touch_handler('mirror_canvas')"
+                v-touch:swipe.top="make_touch_handler('deselect')"
+                v-touch:swipe.left="make_touch_handler('file_save')">
+                <div class="label origin">edit_undo</div>
+                <div class="label east"><div class="rotate">edit_redo</div></div>
+                <div class="label west"><div class="rotate-alt">file_save</div></div>
+                <div class="label south"><div>mirror_canvas</div></div>
+                <div class="label north"><div>deselect</div></div>
+            </div>
+            <div class="grid action-item mid-c bot-r flat-bottom" style="grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr"
+                v-touch:press="(event) => press('Key_Shift')" v-touch:release="(event) => release('Key_Shift')">
+                <div class="label origin"><div>Key_Shift</div></div>
+            </div>
+            <div class="grid action-item col flat-right" v-touch-class="'touched'"
+                v-touch:drag="make_drag_handler('right', {'up': 'action:increase_opacity', 'down':'action:decrease_opacity'})" 
+                v-touch:release="(event) => drag_stop()">
+                <div class="label origin abs"><div class="rotate">opacity</div></div>
+            </div>
+        </div>
+        <div v-if="!connected && !dummy_connection" id="connection"
+        v-touch:tap="promptConnection" style="justify-items: center">
+            <p>Tap anywhere to connect</p>
+        </div>
+        <ul id="event-log" draggable="false" style="display:none">
+            <li v-for="e in events">
+                {{ e.body }}
+            </li>
+        </ul>
+    </div>
+</body>

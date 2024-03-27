@@ -1,0 +1,137 @@
+:root {
+    color-scheme: light dark;
+  }
+
+  @media (prefers-color-scheme: light) {
+    body {
+      color: black;
+      background-color: white;
+    }
+    .action-item {
+      border-color: black;
+    }
+  }
+  
+  @media (prefers-color-scheme: dark) {
+    body {
+      color: white;
+      background-color: black;
+    }
+    .action-item {
+      border-color: white;
+    }
+  }
+
+  body {
+    margin: 0px;
+    padding: 0px;
+    overscroll-behavior: contain;
+  }
+  
+  .touched {
+    background-color: pink;
+    opacity: 0.2;
+  }
+
+
+
+  .mid-c {grid-column: 2;}
+  .top-r{ grid-row: 1}
+  .mid-r{ grid-row: 2}
+  .bot-r{ grid-row: 3}
+  .col { grid-row: 1/4;}
+
+  #pad {
+    position: fixed;
+        z-index: 0;
+        width: 100vw; 
+        height:100vh; 
+        display:grid;
+        grid-gap: 0.2em;
+        grid-template-columns: 0.1fr 0.8fr 0.1fr;
+        grid-template-rows: 0.25fr 0.5fr 0.25fr;
+  }
+
+  #connection {
+    width:100vw; height:100vh; opacity: 0.2;background-color:green;z-index:2;position:fixed;
+  }
+
+  #event-log {
+    position: fixed; z-index: -1; user-select: none; touch-action: none
+  }
+
+
+  .north {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .south {
+    grid-column: 2;
+    grid-row: 3;
+  }
+  .west {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .east {
+    grid-column: 3;
+    grid-row: 2;
+  }
+  .origin {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+.abs {
+  position: absolute;
+}
+
+.grid {
+  display: grid;
+  align-items: center;
+  justify-items: center;
+}
+
+.rotate {
+  transform: rotate(90deg);
+}
+.rotate-alt {
+  transform: rotate(-90deg);
+}
+
+.label {
+  user-select: none;
+  z-index: -1
+}
+
+.action-item {
+  border-width: 1px;
+  border-style: dotted;
+  border-radius: 1em;
+}
+
+.flat-top {
+  border-top-left-radius: 0px;
+  border-top-right-radius: 0px;
+  border-top-width: 0px
+}
+
+.flat-bottom {
+  border-bottom-left-radius: 0px;
+  border-bottom-right-radius: 0px;
+  border-bottom-width: 0px
+}
+
+.flat-right {
+  border-bottom-right-radius: 0px;
+  border-top-right-radius: 0px;
+  border-right-width: 0px
+}
+
+.flat-left {
+  border-bottom-left-radius: 0px;
+  border-top-left-radius: 0px;
+  border-left-width: 0px
+}
+
+.smalldot { background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc1JyBoZWlnaHQ9JzUnPgo8cmVjdCB3aWR0aD0nNScgaGVpZ2h0PSc1JyBmaWxsPScjZmZmJy8+CjxyZWN0IHdpZHRoPScxJyBoZWlnaHQ9JzEnIGZpbGw9JyNjY2MnLz4KPC9zdmc+"); background-repeat: repeat; }
