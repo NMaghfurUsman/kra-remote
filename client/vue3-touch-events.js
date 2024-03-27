@@ -52,7 +52,7 @@ var vueTouchEvents = {
                 isMouseEvent = event.type.indexOf('mouse') >= 0,
                 $el = this;
 
-            if (isTouchEvent) {
+            if (isTouchEvent && !$this.touchUpgraded) {
                 $this.lastTouchStartTime = event.timeStamp;
             }
 
@@ -60,16 +60,21 @@ var vueTouchEvents = {
                 return;
             }
 
-            if ($this.touchStarted) {
+            if ($this.initialTouchStarted) {
+                if (event.touches.length > 1 )
+                {
+                    $this.touchUpgraded = true;
+                }
                 return;
             }
 
             addTouchClass(this);
 
-            $this.touchStarted = true; // always true while the element is being PRESSED
+            $this.initialTouchStarted = true; // always true while the element is being PRESSED by the first touch event
 
             $this.touchMoved = false; // true only when the element is PRESSED and DRAGGED a bit
             $this.swipeOutBounded = false;
+            $this.touchUpgraded = false; // single touch -> multitouch
 
             $this.startX = touchX(event);
             $this.startY = touchY(event);
@@ -143,7 +148,7 @@ var vueTouchEvents = {
             }
 
 			// only trigger `drag` event if cursor actually moved and if we are still dragging this element
-            if(hasEvent(this, 'drag') && $this.touchStarted && $this.touchMoved && movedAgain){
+            if(hasEvent(this, 'drag') && $this.initialTouchStarted && $this.touchMoved && movedAgain){
 				
 				// throttle the `drag` event based on `dragFrequency`
 				var now = event.timeStamp;
@@ -162,7 +167,7 @@ var vueTouchEvents = {
             cancelTouchHoldTimer($this);
             removeTouchClass(this);
 
-            $this.touchStarted = $this.touchMoved = false;
+            $this.initialTouchStarted = $this.touchMoved = false;
             $this.startX = $this.startY = 0;
         }
 
@@ -171,6 +176,11 @@ var vueTouchEvents = {
                 isTouchEvent = event.type.indexOf('touch') >= 0,
                 isMouseEvent = event.type.indexOf('mouse') >= 0;
 
+            // ignore residual touches from multitouch events
+            if (!$this.initialTouchStarted && $this.touchUpgraded) {
+                return;
+            }
+
             if (isTouchEvent) {
                 $this.lastTouchEndTime = event.timeStamp;
             }
@@ -178,7 +188,7 @@ var vueTouchEvents = {
             var touchholdEnd = isTouchEvent && !$this.touchHoldTimer;
             cancelTouchHoldTimer($this);
 
-            $this.touchStarted = false;
+            $this.initialTouchStarted = false;
 
             removeTouchClass(this);
 
@@ -202,8 +212,9 @@ var vueTouchEvents = {
                         event.preventDefault();
                     }
                     return;
+                } else if (hasEvent(this, 'multitap') && $this.touchUpgraded) {
+                    triggerEvent(event, this, 'multitap');
                 } else {
-                    // emit tap event
                     triggerEvent(event, this, 'tap');
                 }
 
@@ -344,6 +355,7 @@ var vueTouchEvents = {
 
                     case 'press':
                     case 'drag':
+                    case 'multitap':
                         if (binding.modifiers.disablePassive) {
                             // change the passive option for the `drag` event if disablePassive modifier exists
                             passiveOpt = false;

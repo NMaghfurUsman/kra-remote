@@ -143,16 +143,17 @@
                 <div class="label west"><div class="rotate-alt">clear</div></div>
             </div>
             <div class="grid action-item mid-c mid-r"
+                v-touch:multitap="make_touch_handler('edit_redo')"
                 v-touch:tap="make_touch_handler('edit_undo')"
-                v-touch:swipe.right="make_touch_handler('edit_redo')" 
+                v-touch:swipe.right="make_touch_handler('edit_paste')"
                 v-touch:swipe.bottom="make_touch_handler('mirror_canvas')"
-                v-touch:swipe.top="make_touch_handler('deselect')"
+                v-touch:swipe.top="make_touch_handler('edit_copy')"
                 v-touch:swipe.left="make_touch_handler('file_save')">
-                <div class="label origin">edit_undo</div>
-                <div class="label east"><div class="rotate">edit_redo</div></div>
+                <div class="label origin">edit_undo<br>edit_redo</div>
+                <div class="label east"><div class="rotate">edit_paste</div></div>
                 <div class="label west"><div class="rotate-alt">file_save</div></div>
                 <div class="label south"><div>mirror_canvas</div></div>
-                <div class="label north"><div>deselect</div></div>
+                <div class="label north"><div>edit_copy</div></div>
             </div>
             <div class="grid action-item mid-c bot-r flat-bottom" style="grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr"
                 v-touch:press="(event) => press('Key_Shift')" v-touch:release="(event) => release('Key_Shift')">
@@ -168,7 +169,7 @@
         v-touch:tap="promptConnection" style="justify-items: center">
             <p>Tap anywhere to connect</p>
         </div>
-        <ul id="event-log" draggable="false" style="display:none">
+        <ul id="event-log" draggable="false">
             <li v-for="e in events">
                 {{ e.body }}
             </li>
