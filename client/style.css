@@ -48,7 +48,7 @@
         height:100vh; 
         display:grid;
         grid-gap: 0.2em;
-        grid-template-columns: 0.1fr 0.8fr 0.1fr;
+        grid-template-columns: 0.2fr 0.6fr 0.2fr;
         grid-template-rows: 0.25fr 0.5fr 0.25fr;
   }
 
@@ -100,6 +100,9 @@
 }
 
 .label {
+  display:flex;
+  justify-content: center;
+  width:0px;
   user-select: none;
   z-index: -1
 }
