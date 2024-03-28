@@ -84,12 +84,21 @@ var vueTouchEvents = {
             $this.currentX = 0; // always updated with the last mouse X/Y while over the element
             $this.currentY = 0;
 
+            $this.largestXDst = 0;
+            $this.largestYDst = 0;
+            $this.largestX = 0;
+            $this.largestY = 0;
+
             $this.touchStartTime = event.timeStamp;
 			
 			// performance: only process swipe events if `swipe.*` event is registered on this element
 			$this.hasSwipe = hasEvent(this, 'swipe')
 				|| hasEvent(this, 'swipe.left') || hasEvent(this, 'swipe.right')
 				|| hasEvent(this, 'swipe.top') || hasEvent(this, 'swipe.bottom');
+
+            $this.hasFlick =
+				hasEvent(this, 'flick.left') || hasEvent(this, 'flick.right')
+				|| hasEvent(this, 'flick.top') || hasEvent(this, 'flick.bottom');
 
 			// performance: only start hold timer if the `hold` event is registered on this element
 			if (hasEvent(this, 'hold')){
@@ -137,6 +146,19 @@ var vueTouchEvents = {
 
 				$this.swipeOutBounded = Math.abs($this.startX - $this.currentX) > swipeOutBounded &&
 					Math.abs($this.startY - $this.currentY) > swipeOutBounded;
+            }
+
+            if ($this.touchMoved && $this.hasFlick) {
+                var absX = Math.abs($this.currentX - $this.startX);
+                if (absX > $this.largestXDst) {
+                    $this.largestXDst = absX;
+                    $this.largestX = curX;
+                }
+                var absY = Math.abs($this.currentY - $this.startY);
+                if (absY > $this.largestYDst) {
+                    $this.largestYDst = absY;
+                    $this.largestY = curY;
+                }
             }
 
 			// only trigger `rollover` event if cursor actually moved over this element
@@ -224,20 +246,33 @@ var vueTouchEvents = {
                 }
 
 			// performance: only process swipe events if `swipe.*` event is registered on this element
-            } else if ($this.hasSwipe && !$this.swipeOutBounded) {
+            } else if (($this.hasSwipe || $this.hasFlick) && !$this.swipeOutBounded) {
+
+                var dstX = Math.abs($this.currentX - $this.startX);
+                var dstY = Math.abs($this.currentY - $this.startY);
+
+                var flickX = dstX < 0.3 * $this.largestXDst;
+                var flickY = dstY < 0.3 * $this.largestYDst;
+
                 var swipeOutBounded = $this.options.swipeTolerance,
                     direction,
-                    distanceY = Math.abs($this.startY - $this.currentY),
-                    distanceX = Math.abs($this.startX - $this.currentX);
+                    flicking,
+                    distanceY = Math.abs($this.startY - $this.largestY),
+                    distanceX = Math.abs($this.startX - $this.largestX);
 
                 if (distanceY > swipeOutBounded || distanceX > swipeOutBounded) {
                     if (distanceY > distanceX) {
-                        direction = $this.startY > $this.currentY ? 'top' : 'bottom';
+                        direction = $this.startY > $this.largestY ? 'top' : 'bottom';
+                        flicking = flickY;
                     } else {
-                        direction = $this.startX > $this.currentX ? 'left' : 'right';
+                        direction = $this.startX > $this.largestX ? 'left' : 'right';
+                        flicking = flickX;
                     }
 
-                    // Only emit the specified event when it has modifiers
+                    if (hasEvent(this, 'flick.' + direction) && flicking) {
+                        triggerEvent(event, this, 'flick.' + direction, direction);
+                    }  else
+
                     if (hasEvent(this, 'swipe.' + direction)) {
                         triggerEvent(event, this, 'swipe.' + direction, direction);
                     } else {
@@ -362,6 +397,21 @@ var vueTouchEvents = {
                         } else {
                             $this.callbacks.swipe = $this.callbacks.swipe || [];
                             $this.callbacks.swipe.push(binding);
+                        }
+                        break;
+                    case 'flick':
+                        var _m = binding.modifiers;
+                        if (_m.left || _m.right || _m.top || _m.bottom) {
+                            for (var i in binding.modifiers) {
+                                if (['left', 'right', 'top', 'bottom'].indexOf(i) >= 0) {
+                                    var _e = 'flick.' + i;
+                                    $this.callbacks[_e] = $this.callbacks[_e] || [];
+                                    $this.callbacks[_e].push(binding);
+                                }
+                            }
+                        } else {
+                            $this.callbacks.flick = $this.callbacks.flick || [];
+                            $this.callbacks.flick.push(binding);
                         }
                         break;
 
