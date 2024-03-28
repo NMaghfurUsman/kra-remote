@@ -156,7 +156,9 @@
                 <div class="label north"><div>edit_copy</div></div>
             </div>
             <div class="grid action-item mid-c bot-r flat-bottom" style="grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr"
-                v-touch:press="(event) => press('Key_Shift')" v-touch:release="(event) => release('Key_Shift')">
+                v-touch:press="(event) => press('Key_Shift')" v-touch:release="(event) => release('Key_Shift')"
+                v-touch:multipress="(event) => press('Key_Ctrl')" v-touch:multirelease="(event) => release('Key_Ctrl')"
+                v-touch-options="{'disableClick':true}">
                 <div class="label origin"><div>Key_Shift</div></div>
             </div>
             <div class="grid action-item col flat-right" v-touch-class="'touched'"

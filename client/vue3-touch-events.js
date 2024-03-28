@@ -60,10 +60,12 @@ var vueTouchEvents = {
                 return;
             }
 
-            if ($this.initialTouchStarted) {
+            if ($this.initialTouchStarted && $this.pressTimer != null) {
                 if (event.touches.length > 1 )
                 {
+                    cancelPressTimer($this);
                     $this.touchUpgraded = true;
+                    triggerEvent(event, this, 'multipress');
                 }
                 return;
             }
@@ -99,7 +101,10 @@ var vueTouchEvents = {
 				}, $this.options.touchHoldTolerance);
 			}
 			
-            triggerEvent(event, this, 'press');
+            $this.pressTimer = setTimeout(function() {
+                $this.pressTimer = null;
+                triggerEvent(event, $el, 'press');
+            }, 50);
         }
 
         function touchMoveEvent(event) {
@@ -197,7 +202,7 @@ var vueTouchEvents = {
             }
 
             // trigger `end` event when touch stopped
-            triggerEvent(event, this, 'release');
+            triggerEvent(event, this, $this.touchUpgraded ? 'multirelease' : 'release');
 
             if (!$this.touchMoved) {
                 // detect if this is a longTap event or not
@@ -311,6 +316,13 @@ var vueTouchEvents = {
             }
         }
 
+        function cancelPressTimer($this) {
+            if ($this && $this.pressTimer) {
+                clearTimeout($this.pressTimer);
+                $this.pressTimer = null;
+            }
+        }
+
         function buildTouchObj($el, extraOptions) {
             var touchObj = $el.$$touchObj || {
                 // an object contains all callbacks registered,
@@ -356,6 +368,7 @@ var vueTouchEvents = {
                     case 'press':
                     case 'drag':
                     case 'multitap':
+                    case 'multipress':
                         if (binding.modifiers.disablePassive) {
                             // change the passive option for the `drag` event if disablePassive modifier exists
                             passiveOpt = false;
