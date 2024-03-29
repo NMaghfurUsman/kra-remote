@@ -1,9 +1,11 @@
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QLineEdit
+from PyQt5.uic.Compiler.qtproxies import QtCore
 from ..connection import Connection
 from PyQt5.QtCore import pyqtProperty
+import PyQt5.QtCore
 
-class ConnectionLine(QLineEdit):
+class ServerLine(QLineEdit):
     
     _address: str = ""
     _listening: bool = False

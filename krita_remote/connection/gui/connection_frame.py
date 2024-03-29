@@ -1,7 +1,7 @@
 from ..connection import Connection
-from .connection_line import ConnectionLine
-from .status_line import StatusLine
-from .connection_button import ConnectionButton
+from .server_line import ServerLine
+from .client_line import ClientLine
+from .server_button import ServerButton
 from PyQt5.QtWidgets import QBoxLayout, QFrame
 from PyQt5.QtCore import QObject
 
@@ -11,11 +11,13 @@ class ConnectionFrame(QFrame):
         super().__init__(parent)
         
         # initialize GUI
-        self._status_line = StatusLine(connection, parent)
-        self._start_btn = ConnectionButton(connection, parent, True)
-        self._stop_btn = ConnectionButton(connection, parent, False)
-        self._connection_line = ConnectionLine(connection, parent)
+        self._status_line = ClientLine(connection, parent)
+        self._start_btn = ServerButton(connection, parent, True)
+        self._stop_btn = ServerButton(connection, parent, False)
+        self._connection_line = ServerLine(connection, parent)
         
+
+
         # Connect signals
         self._start_btn.clicked.connect(connection.startServer)
         self._stop_btn.clicked.connect(connection.stopServer)

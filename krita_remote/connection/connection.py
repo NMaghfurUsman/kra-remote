@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Protocol
+from typing import Protocol, Optional
 from PyQt5.QtCore import QObject, pyqtSlot, pyqtSignal
 from PyQt5.QtWebSockets import QWebSocketServer, QWebSocket
 from PyQt5.QtNetwork import QHostAddress
@@ -64,7 +64,7 @@ class SocketServer(QWebSocketServer):
 class Connection(QObject):
     
     server: SocketServer
-    client: Socket = None
+    client: Optional[Socket] = None
     
     serverListening = pyqtSignal(str)
     serverStopped = pyqtSignal()
@@ -165,13 +165,13 @@ class Connection(QObject):
     def listening(self) -> bool:
         return self.server.isListening()
     
-    def connectClientSignals(self, cls: ClientListener) -> None:
-        self.clientConnected.connect(cls.onClientConnected)
-        self.clientDisconnected.connect(cls.onClientDisconnected)
+    def connectClientSignals(self, listener: ClientListener) -> None:
+        self.clientConnected.connect(listener.onClientConnected)
+        self.clientDisconnected.connect(listener.onClientDisconnected)
         
-    def connectServerSignals(self, cls: ServerListener) -> None:
-        self.serverListening.connect(cls.onServerListening)
-        self.serverStopped.connect(cls.onServerStopped)
+    def connectServerSignals(self, listener: ServerListener) -> None:
+        self.serverListening.connect(listener.onServerListening)
+        self.serverStopped.connect(listener.onServerStopped)
         
     @pyqtSlot(str)
     def send(self, msg: str) -> bool:

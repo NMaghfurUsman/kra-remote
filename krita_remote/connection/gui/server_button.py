@@ -5,7 +5,7 @@ from ..connection import Connection
 LISTENING: str = "Stop Server"
 STOPPED: str = "Start Server"
 
-class ConnectionButton(QPushButton):
+class ServerButton(QPushButton):
     
     start: bool
     

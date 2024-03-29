@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QLineEdit
 from ..connection import Connection
 from PyQt5.QtCore import pyqtProperty
 
-class StatusLine(QLineEdit):
+class ClientLine(QLineEdit):
   
     _connected: bool = False
     
