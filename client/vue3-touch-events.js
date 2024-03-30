@@ -148,7 +148,7 @@ var vueTouchEvents = {
 					Math.abs($this.startY - $this.currentY) > swipeOutBounded;
             }
 
-            if ($this.touchMoved && $this.hasFlick) {
+            if ($this.touchMoved && ($this.hasFlick || $this.hasSwipe)) {
                 var absX = Math.abs($this.currentX - $this.startX);
                 if (absX > $this.largestXDst) {
                     $this.largestXDst = absX;
