@@ -148,7 +148,7 @@
                 v-touch:swipe.right="make_touch_handler('edit_paste')"
                 v-touch:flick.right="make_touch_handler('paste_into')"
                 v-touch:swipe.bottom="make_touch_handler('mirror_canvas')"
-                v-touch:flick.bottom="make_touch_handler('reset_zoom')"
+                v-touch:flick.bottom="make_touch_handler('zoom_to_100pct')"
                 v-touch:swipe.top="make_touch_handler('edit_copy')"
                 v-touch:flick.top="make_touch_handler('edit_cut')"
                 v-touch:swipe.left="make_touch_handler('file_save')"
@@ -162,7 +162,7 @@
             </div>
             <div class="grid action-item mid-c bot-r flat-bottom" style="grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr"
                 v-touch:press="(event) => press('Key_Shift')" v-touch:release="(event) => release('Key_Shift')"
-                v-touch:multipress="(event) => press('Key_Ctrl')" v-touch:multirelease="(event) => release('Key_Ctrl')"
+                v-touch:multipress="(event) => press('Key_Control')" v-touch:multirelease="(event) => release('Key_Control')"
                 v-touch-options="{'disableClick':true}">
                 <div class="label origin"><div>Key_Shift</div></div>
             </div>
