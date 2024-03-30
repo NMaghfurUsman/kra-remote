@@ -18,13 +18,21 @@
             }
         }
 
+        const get_addr_from_hash = () => {
+            try {
+                return new URL(location.hash.substring(1))
+            } catch (e) {
+                return "ws://localhost"
+            }
+        }
+
         const app = createApp({
             data() {
                 return {
                     dummy_connection: dummy_connection,
                     connected: false,
                     socket: null,
-                    address: "localhost:9999",
+                    address: get_addr_from_hash(),
                     events: [],
                     dragging: false,
                     drag_started: false,
@@ -33,7 +41,7 @@
             },
             methods: {
                 connect() {
-                    this.socket = new WebSocket("ws://"+this.address);
+                    this.socket = new WebSocket(this.address);
                     this.socket.addEventListener("open", (event) => {
                         this.connected = true;
                         log(this.events, "socked opened")
@@ -47,7 +55,7 @@
                     })
                 },
                 promptConnection(event) {
-                    this.address = prompt("WebSocket connection", this.address)
+                    this.address = prompt("Connect to WebSocket server", get_addr_from_hash())
                     this.connect()
 
                 },
