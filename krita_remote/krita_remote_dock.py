@@ -1,15 +1,15 @@
+from typing import Any
 from krita import DockWidget
 from .connection.gui.connection_frame import ConnectionFrame
 from .krita_remote_extension import KritaRemoteExtension
 from .api_krita import Krita
-from .api_krita.core_api import Canvas
 from PyQt5.QtWidgets import QWidget
 
 DOCKER_TITLE: str = "Krita Remote"
 
 class KritaRemoteDockWidget(DockWidget):
     
-    _extension: KritaRemoteExtension = None
+    _extension: KritaRemoteExtension
     _connection_frame: ConnectionFrame
 
     def __init__(self):
@@ -21,7 +21,7 @@ class KritaRemoteDockWidget(DockWidget):
         
         self.setWidget(self._connection_frame)
 
-    def canvasChanged(self, canvas: Canvas):
+    def canvasChanged(self, canvas: Any):
         if canvas:
             if (canvas.view() and canvas.view().document()):
                 print("Canvas changed. visible?: {}".format((canvas.view().visible)))

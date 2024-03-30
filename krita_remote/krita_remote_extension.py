@@ -1,3 +1,4 @@
+from typing import Any
 from krita import Extension
 from .connection import Connection
 from .api_krita import Krita
@@ -44,7 +45,7 @@ class KritaRemoteExtension(Extension):
     @pyqtSlot(str)
     def press(self, key: str):
         print("press: {}".format(key))
-        canvas = find_current_canvas()
+        canvas: Any = find_current_canvas()
         press = QKeyEvent(QEvent.KeyPress, getattr(Qt, key), Qt.NoModifier)
         if not canvas.isActiveWindow():
             canvas.activateWindow()
@@ -53,7 +54,7 @@ class KritaRemoteExtension(Extension):
     @pyqtSlot(str)
     def release(self, key: str):
         print("release: {}".format(key))
-        canvas = find_current_canvas()
+        canvas: Any = find_current_canvas()
         release = QKeyEvent(QEvent.KeyRelease, getattr(Qt, key), Qt.NoModifier)
         if not canvas.isActiveWindow():
             canvas.activateWindow()
