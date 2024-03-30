@@ -1,4 +1,3 @@
-from krita import DockWidgetFactory, DockWidgetFactoryBase
 from .api_krita import Krita
 from .krita_remote_extension import KritaRemoteExtension
 from .krita_remote_dock import KritaRemoteDockWidget

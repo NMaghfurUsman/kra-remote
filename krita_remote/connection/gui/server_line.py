@@ -1,9 +1,7 @@
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QLineEdit
-from PyQt5.uic.Compiler.qtproxies import QtCore
-from ..connection import Connection
 from PyQt5.QtCore import pyqtProperty
-import PyQt5.QtCore
+from ..connection import Connection
 
 class ServerLine(QLineEdit):
     

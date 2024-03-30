@@ -1,10 +1,10 @@
 from abc import abstractmethod
 from typing import Protocol, Optional
+from random import randint
+from socket import gethostbyname, gethostname
 from PyQt5.QtCore import QObject, pyqtSlot, pyqtSignal
 from PyQt5.QtWebSockets import QWebSocketServer, QWebSocket
 from PyQt5.QtNetwork import QHostAddress
-from socket import gethostbyname, gethostname
-from random import randint
 from PyQt5.QtCore import pyqtProperty
 
 class ServerListener(Protocol):
