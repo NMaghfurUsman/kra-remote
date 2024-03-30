@@ -10,20 +10,29 @@ from PyQt5.QtCore import pyqtProperty
 class ServerListener(Protocol):
     
     @abstractmethod
+    @pyqtSlot()
     def onServerStopped(self) -> None:
         pass
 
     @abstractmethod
+    @pyqtSlot(str)
     def onServerListening(self, address: str) -> None:
         pass
     
 class ClientListener(Protocol):
     
     @abstractmethod
+    @pyqtSlot()
+    def onClientMessage(self) -> None:
+        pass
+
+    @abstractmethod
+    @pyqtSlot()
     def onClientConnected(self) -> None:
         pass
 
     @abstractmethod
+    @pyqtSlot()
     def onClientDisconnected(self) -> None:
         pass
 
@@ -72,7 +81,8 @@ class Connection(QObject):
     clientConnected = pyqtSignal()
     clientDisconnected = pyqtSignal()
     clientRejected = pyqtSignal()
-    
+    clientMessageReceived = pyqtSignal(str)
+
     action = pyqtSignal(str)
     press = pyqtSignal(str)
     release = pyqtSignal(str)
@@ -84,10 +94,6 @@ class Connection(QObject):
         self.server.closed.connect(self.serverStopped.emit)
         
         self.clientDisconnected.connect(self.onClientDisconnected)
-        self.clientConnected.connect(self.onClientConnected)
-        self.clientRejected.connect(self.onClientRejected)
-        
-        self.onMessage
 
     @pyqtSlot(bool)
     def onServerChange(self, listening: bool):
@@ -102,8 +108,9 @@ class Connection(QObject):
         else:
             self.client = socket
             self.clientConnected.emit()
-            self.client.disconnected.connect(self.clientDisconnected)
+            self.client.disconnected.connect(self.clientDisconnected.emit)
             self.client.messageReceived.connect(self.onMessage)
+            self.client.messageReceived.connect(self.clientMessageReceived.emit)
             
     @pyqtSlot(str)
     def onMessage(self, msg: str):
@@ -119,16 +126,7 @@ class Connection(QObject):
 
     @pyqtSlot()
     def onClientDisconnected(self):
-        print("Client disconnected")
         self.client = None
-              
-    @pyqtSlot()  
-    def onClientConnected(self):
-        print("Client connected")
-
-    @pyqtSlot()  
-    def onClientRejected(self):
-        print("Client rejected")
 
     @pyqtSlot()
     def startServer(self):
@@ -166,6 +164,7 @@ class Connection(QObject):
         return self.server.isListening()
     
     def connectClientSignals(self, listener: ClientListener) -> None:
+        self.clientMessageReceived.connect(listener.onClientMessage)
         self.clientConnected.connect(listener.onClientConnected)
         self.clientDisconnected.connect(listener.onClientDisconnected)
         
