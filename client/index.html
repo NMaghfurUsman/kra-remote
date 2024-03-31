@@ -2,6 +2,7 @@
 
 <head>
     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, interactive-widget=resizes-content"/>
+    <meta charset="utf-8">
     <title>Krita Remote</title>
     <script type="module">
         import { createApp } from 'https://unpkg.com/vue@3.4.21/dist/vue.esm-browser.js'
@@ -145,28 +146,29 @@
             <div class="grid action-item mid-c top-r flat-top" style="grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr"
                 v-touch:tap="make_touch_handler('eraser_preset_action')" 
                 v-touch:swipe.right="make_touch_handler('erase_action')"
-                v-touch:swipe.left="make_touch_handler('clear')">
-                <div class="label origin">erase_action</div>
+                v-touch:swipe.left="make_touch_handler('clear')"
+                v-touch:multiswipe.left="make_touch_handler('file_quit')">
+                <div class="label origin">erase_preset_action</div>
                 <div class="label east"><div class="rotate">erase_action</div></div>
-                <div class="label west"><div class="rotate-alt">clear</div></div>
+                <div class="label west"><div class="rotate-alt">clear&#8288;☝<br>file_quit&#8288;✌</div></div>
             </div>
             <div class="grid action-item mid-c mid-r"
                 v-touch:multitap="make_touch_handler('edit_redo')"
                 v-touch:tap="make_touch_handler('edit_undo')"
                 v-touch:swipe.right="make_touch_handler('edit_paste')"
                 v-touch:flick.right="make_touch_handler('paste_into')"
+                v-touch:multiswipe.right="make_touch_handler('paste_as_reference')"
                 v-touch:swipe.bottom="make_touch_handler('mirror_canvas')"
                 v-touch:flick.bottom="make_touch_handler('zoom_to_100pct')"
                 v-touch:swipe.top="make_touch_handler('edit_copy')"
                 v-touch:flick.top="make_touch_handler('edit_cut')"
                 v-touch:swipe.left="make_touch_handler('file_save')"
-                v-touch:flick.left="make_touch_handler('file_save_as')"
-                >
-                <div class="label origin">edit_undo<br>edit_redo</div>
-                <div class="label east rotate">edit_paste</div>
-                <div class="label west rotate-alt">file_save</div>
-                <div class="label south"><div>mirror_canvas</div></div>
-                <div class="label north"><div>edit_copy</div></div>
+                v-touch:flick.left="make_touch_handler('file_save_as')">
+                <div class="label origin">edit_undo&#8288;☝<br>edit_redo&#8288;</div>
+                <div class="label east rotate">edit_paste&#8288;☝<br>paste_into&#8288;⤵️<br>paste_as_reference&#8288;✌</div>
+                <div class="label west rotate-alt">file_save&#8288;☝</div>
+                <div class="label south"><div>mirror_canvas&#8288;☝</div></div>
+                <div class="label north"><div>edit_copy&#8288;☝</div></div>
             </div>
             <div class="grid action-item mid-c bot-r flat-bottom" style="grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr"
                 v-touch:press="(event) => press('Key_Shift')" v-touch:release="(event) => release('Key_Shift')"
