@@ -41,6 +41,7 @@ var vueTouchEvents = {
             swipeTolerance: 30,  // px
             touchHoldTolerance: 400,  // ms
             longTapTimeInterval: 400,  // ms
+            touchUpgradeWindow: 100, // ms
             touchClass: '',
 			dragFrequency: 100, // ms
 			rollOverFrequency: 100, // ms
@@ -65,6 +66,8 @@ var vueTouchEvents = {
                 {
                     cancelPressTimer($this);
                     $this.touchUpgraded = true;
+                    $this.touchUpgradedStartX = touchX(event);
+                    $this.touchUpgradedStartY = touchY(event);
                     triggerEvent(event, this, 'multipress');
                 }
                 return;
@@ -86,8 +89,11 @@ var vueTouchEvents = {
 
             $this.largestXDst = 0;
             $this.largestYDst = 0;
-            $this.largestX = 0;
-            $this.largestY = 0;
+            $this.fartherX = touchX(event);
+            $this.fartherY = touchY(event);
+
+            $this.touchUpgradedStartX = null; // the start pos cannot be used for multitouch directional gestures
+            $this.touchUpgradedStartY = null;
 
             $this.touchStartTime = event.timeStamp;
 			
@@ -95,6 +101,10 @@ var vueTouchEvents = {
 			$this.hasSwipe = hasEvent(this, 'swipe')
 				|| hasEvent(this, 'swipe.left') || hasEvent(this, 'swipe.right')
 				|| hasEvent(this, 'swipe.top') || hasEvent(this, 'swipe.bottom');
+
+            $this.hasMultiSwipe = hasEvent(this, 'multiswipe')
+				|| hasEvent(this, 'multiswipe.left') || hasEvent(this, 'multiswipe.right')
+				|| hasEvent(this, 'multiswipe.top') || hasEvent(this, 'multiswipe.bottom');
 
             $this.hasFlick =
 				hasEvent(this, 'flick.left') || hasEvent(this, 'flick.right')
@@ -113,7 +123,7 @@ var vueTouchEvents = {
             $this.pressTimer = setTimeout(function() {
                 $this.pressTimer = null;
                 triggerEvent(event, $el, 'press');
-            }, 50);
+            }, $this.options.touchUpgradeWindow);
         }
 
         function touchMoveEvent(event) {
@@ -127,64 +137,96 @@ var vueTouchEvents = {
             $this.currentX = curX;
             $this.currentY = curY;
 
-            if (!$this.touchMoved) {
-                var tapTolerance = $this.options.tapTolerance;
+            if (!$this.touchUpgraded) {
+                if (!$this.touchMoved) {
+                    var tapTolerance = $this.options.tapTolerance;
 
-                $this.touchMoved = Math.abs($this.startX - $this.currentX) > tapTolerance ||
-								   Math.abs($this.startY - $this.currentY) > tapTolerance;
+                    $this.touchMoved = Math.abs($this.touchUpgraded ? $this.touchUpgradedStartX : $this.startX - $this.currentX) > tapTolerance ||
+                                       Math.abs($this.touchUpgraded ? $this.touchUpgradedStartY : $this.startY - $this.currentY) > tapTolerance;
 
-				// trigger `drag.once` only once after mouse FIRST moved while dragging the element
-				// (`touchMoved` is the flag that indicates we no longer need to trigger this)
-                if($this.touchMoved){
-                    cancelTouchHoldTimer($this);
-                    triggerEvent(event, this, 'drag.once');
+                    // trigger `drag.once` only once after mouse FIRST moved while dragging the element
+                    // (`touchMoved` is the flag that indicates we no longer need to trigger this)
+                    if($this.touchMoved){
+                        cancelTouchHoldTimer($this);
+                        triggerEvent(event, this, 'drag.once');
+                    }
+
+                // performance: only process swipe events if `swipe.*` event is registered on this element
+                } else if (($this.hasSwipe || $this.hasFlick) && !$this.swipeOutBounded) {
+                    var swipeOutBounded = $this.options.swipeTolerance;
+
+                    $this.swipeOutBounded = Math.abs($this.startX - $this.currentX) > swipeOutBounded &&
+                        Math.abs($this.startY - $this.currentY) > swipeOutBounded;
                 }
 
-			// performance: only process swipe events if `swipe.*` event is registered on this element
-            } else if ($this.hasSwipe && !$this.swipeOutBounded) {
-				var swipeOutBounded = $this.options.swipeTolerance;
-
-				$this.swipeOutBounded = Math.abs($this.startX - $this.currentX) > swipeOutBounded &&
-					Math.abs($this.startY - $this.currentY) > swipeOutBounded;
-            }
-
-            if ($this.touchMoved && ($this.hasFlick || $this.hasSwipe)) {
-                var absX = Math.abs($this.currentX - $this.startX);
-                if (absX > $this.largestXDst) {
-                    $this.largestXDst = absX;
-                    $this.largestX = curX;
+                if ($this.touchMoved && ($this.hasFlick || $this.hasSwipe)) {
+                    var absX = Math.abs($this.currentX - $this.startX);
+                    if (absX > $this.largestXDst) {
+                        $this.largestXDst = absX;
+                        $this.farthestX = curX;
+                    }
+                    var absY = Math.abs($this.currentY - $this.startY);
+                    if (absY > $this.largestYDst) {
+                        $this.largestYDst = absY;
+                        $this.farthestY = curY;
+                    }
                 }
-                var absY = Math.abs($this.currentY - $this.startY);
-                if (absY > $this.largestYDst) {
-                    $this.largestYDst = absY;
-                    $this.largestY = curY;
+
+                // only trigger `rollover` event if cursor actually moved over this element
+                if(hasEvent(this, 'rollover') && movedAgain){
+
+                    // throttle the `rollover` event based on `rollOverFrequency`
+                    var now = event.timeStamp;
+                    var throttle = $this.options.rollOverFrequency;
+                    if ($this.touchRollTime == null || now > ($this.touchRollTime + throttle)){
+                        $this.touchRollTime = now;
+
+                        triggerEvent(event, this, 'rollover');
+                    }
                 }
-            }
 
-			// only trigger `rollover` event if cursor actually moved over this element
-            if(hasEvent(this, 'rollover') && movedAgain){
-				
-				// throttle the `rollover` event based on `rollOverFrequency`
-				var now = event.timeStamp;
-				var throttle = $this.options.rollOverFrequency;
-				if ($this.touchRollTime == null || now > ($this.touchRollTime + throttle)){
-					$this.touchRollTime = now;
-					
-					triggerEvent(event, this, 'rollover');
-				}
-            }
+                // only trigger `drag` event if cursor actually moved and if we are still dragging this element
+                if(hasEvent(this, 'drag') && $this.initialTouchStarted && $this.touchMoved && movedAgain){
 
-			// only trigger `drag` event if cursor actually moved and if we are still dragging this element
-            if(hasEvent(this, 'drag') && $this.initialTouchStarted && $this.touchMoved && movedAgain){
-				
-				// throttle the `drag` event based on `dragFrequency`
-				var now = event.timeStamp;
-				var throttle = $this.options.dragFrequency;
-				if ($this.touchDragTime == null || now > ($this.touchDragTime + throttle)){
-					$this.touchDragTime = now;
-					
-					triggerEvent(event, this, 'drag');
-				}
+                    // throttle the `drag` event based on `dragFrequency`
+                    var now = event.timeStamp;
+                    var throttle = $this.options.dragFrequency;
+                    if ($this.touchDragTime == null || now > ($this.touchDragTime + throttle)){
+                        $this.touchDragTime = now;
+
+                        triggerEvent(event, this, 'drag');
+                    }
+                }
+            } else {
+                if (!$this.touchMoved) {
+                    var tapTolerance = $this.options.tapTolerance;
+
+                    $this.touchMoved = Math.abs($this.touchUpgradedStartX - $this.currentX) > tapTolerance ||
+                                       Math.abs($this.touchUpgradedStartY - $this.currentY) > tapTolerance;
+
+                    if($this.touchMoved){
+                        cancelTouchHoldTimer($this);
+                    }
+
+                }
+                else if ($this.hasMultiSwipe && !$this.swipeOutBounded) {
+                    var swipeOutBounded = $this.options.swipeTolerance;
+                    $this.swipeOutBounded = Math.abs($this.touchUpgradedStartX - $this.currentX) > swipeOutBounded &&
+                        Math.abs($this.touchUpgradedStartY - $this.currentY) > swipeOutBounded;
+                }
+
+                if ($this.touchMoved && $this.hasMultiSwipe) {
+                    var absX = Math.abs($this.currentX - $this.touchUpgradedStartX);
+                    if (absX > $this.largestXDst) {
+                        $this.largestXDst = absX;
+                        $this.farthestX = curX;
+                    }
+                    var absY = Math.abs($this.currentY - $this.touchUpgradedStartY);
+                    if (absY > $this.largestYDst) {
+                        $this.largestYDst = absY;
+                        $this.farthestY = curY;
+                    }
+                }
             }
         }
 
@@ -204,7 +246,7 @@ var vueTouchEvents = {
                 isMouseEvent = event.type.indexOf('mouse') >= 0;
 
             // ignore residual touches from multitouch events
-            if (!$this.initialTouchStarted && $this.touchUpgraded) {
+            if (event.touches.length == 1 || (!$this.initialTouchStarted && $this.touchUpgraded)) {
                 return;
             }
 
@@ -226,58 +268,85 @@ var vueTouchEvents = {
             // trigger `end` event when touch stopped
             triggerEvent(event, this, $this.touchUpgraded ? 'multirelease' : 'release');
 
-            if (!$this.touchMoved) {
-                // detect if this is a longTap event or not
-                if (hasEvent(this, 'longtap') && event.timeStamp - $this.touchStartTime > $this.options.longTapTimeInterval) {
-                    if (event.cancelable) {
-                        event.preventDefault();
-                    }
-                    triggerEvent(event, this, 'longtap');
+            if (!$this.touchUpgraded) {
+                if (!$this.touchMoved) {
+                    // detect if this is a longTap event or not
+                    if (hasEvent(this, 'longtap') && event.timeStamp - $this.touchStartTime > $this.options.longTapTimeInterval) {
+                        if (event.cancelable) {
+                            event.preventDefault();
+                        }
+                        triggerEvent(event, this, 'longtap');
 
-                } else if (hasEvent(this, 'hold') && touchholdEnd) {
-                    if (event.cancelable) {
-                        event.preventDefault();
+                    } else if (hasEvent(this, 'hold') && touchholdEnd) {
+                        if (event.cancelable) {
+                            event.preventDefault();
+                        }
+                        return;
+                    } else {
+                        triggerEvent(event, this, 'tap');
                     }
-                    return;
-                } else if (hasEvent(this, 'multitap') && $this.touchUpgraded) {
-                    triggerEvent(event, this, 'multitap');
-                } else {
-                    triggerEvent(event, this, 'tap');
+
+
+                // performance: only process swipe events if `swipe.*` event is registered on this element
+                } else if (($this.hasSwipe || $this.hasFlick) && !$this.swipeOutBounded) {
+
+                    var curDstX = Math.abs($this.currentX - $this.startX);
+                    var curDstY = Math.abs($this.currentY - $this.startY);
+
+                    var flickX = curDstX < 0.5 * $this.largestXDst;
+                    var flickY = curDstY < 0.5 * $this.largestYDst;
+
+                    var swipeOutBounded = $this.options.swipeTolerance,
+                        direction,
+                        flicking,
+                        distanceY = Math.abs($this.startY - $this.farthestY),
+                        distanceX = Math.abs($this.startX - $this.farthestX);
+
+                    if (distanceY > swipeOutBounded || distanceX > swipeOutBounded) {
+
+                        if (distanceY > distanceX) {
+                            direction = $this.startY > $this.farthestY ? 'top' : 'bottom';
+                            flicking = flickY;
+                        } else {
+                            direction = $this.startX > $this.farthestX ? 'left' : 'right';
+                            flicking = flickX;
+                        }
+
+                        if (hasEvent(this, 'flick.' + direction) && flicking) {
+                            triggerEvent(event, this, 'flick.' + direction, direction);
+                        }  else
+
+                        if (hasEvent(this, 'swipe.' + direction)) {
+                            triggerEvent(event, this, 'swipe.' + direction, direction);
+                        } else {
+                            triggerEvent(event, this, 'swipe', direction);
+                        }
+                    }
                 }
+            } else {
+                if (hasEvent(this, 'multitap') && !$this.touchMoved) {
+                    triggerEvent(event, this, 'multitap');
+                } else if ($this.hasMultiSwipe && !$this.swipeOutBounded && $this.touchMoved) {
 
-			// performance: only process swipe events if `swipe.*` event is registered on this element
-            } else if (($this.hasSwipe || $this.hasFlick) && !$this.swipeOutBounded) {
+                    var swipeOutBounded = $this.options.swipeTolerance,
+                        direction,
+                        distanceY = Math.abs($this.touchUpgradedStartY - $this.farthestY),
+                        distanceX = Math.abs($this.touchUpgradedStartX - $this.farthestX);
 
-                var dstX = Math.abs($this.currentX - $this.startX);
-                var dstY = Math.abs($this.currentY - $this.startY);
+                    if (distanceY > swipeOutBounded || distanceX > swipeOutBounded) {
+                        if (distanceY > distanceX) {
+                            direction = $this.startY > $this.farthestY ? 'top' : 'bottom';
+                        } else {
+                            direction = $this.startX > $this.farthestX ? 'left' : 'right';
+                        }
 
-                var flickX = dstX < 0.3 * $this.largestXDst;
-                var flickY = dstY < 0.3 * $this.largestYDst;
-
-                var swipeOutBounded = $this.options.swipeTolerance,
-                    direction,
-                    flicking,
-                    distanceY = Math.abs($this.startY - $this.largestY),
-                    distanceX = Math.abs($this.startX - $this.largestX);
-
-                if (distanceY > swipeOutBounded || distanceX > swipeOutBounded) {
-                    if (distanceY > distanceX) {
-                        direction = $this.startY > $this.largestY ? 'top' : 'bottom';
-                        flicking = flickY;
-                    } else {
-                        direction = $this.startX > $this.largestX ? 'left' : 'right';
-                        flicking = flickX;
-                    }
-
-                    if (hasEvent(this, 'flick.' + direction) && flicking) {
-                        triggerEvent(event, this, 'flick.' + direction, direction);
-                    }  else
-
-                    if (hasEvent(this, 'swipe.' + direction)) {
-                        triggerEvent(event, this, 'swipe.' + direction, direction);
-                    } else {
-                        // Emit a common event when it has no any modifier
-                        triggerEvent(event, this, 'swipe', direction);
+                        if (hasEvent(this, 'multiflick.' + direction) && flicking) {
+                            triggerEvent(event, this, 'multiflick.' + direction, direction);
+                        }  else if (hasEvent(this, 'multiswipe.' + direction)) {
+                            triggerEvent(event, this, 'multiswipe.' + direction, direction);
+                        } else {
+                            triggerEvent(event, this, 'multiswipe', direction);
+                        }
                     }
                 }
             }
@@ -405,6 +474,21 @@ var vueTouchEvents = {
                             for (var i in binding.modifiers) {
                                 if (['left', 'right', 'top', 'bottom'].indexOf(i) >= 0) {
                                     var _e = 'flick.' + i;
+                                    $this.callbacks[_e] = $this.callbacks[_e] || [];
+                                    $this.callbacks[_e].push(binding);
+                                }
+                            }
+                        } else {
+                            $this.callbacks.flick = $this.callbacks.flick || [];
+                            $this.callbacks.flick.push(binding);
+                        }
+                        break;
+                    case 'multiswipe':
+                        var _m = binding.modifiers;
+                        if (_m.left || _m.right || _m.top || _m.bottom) {
+                            for (var i in binding.modifiers) {
+                                if (['left', 'right', 'top', 'bottom'].indexOf(i) >= 0) {
+                                    var _e = 'multiswipe.' + i;
                                     $this.callbacks[_e] = $this.callbacks[_e] || [];
                                     $this.callbacks[_e].push(binding);
                                 }
