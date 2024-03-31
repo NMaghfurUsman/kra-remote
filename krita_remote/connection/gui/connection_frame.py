@@ -29,4 +29,3 @@ class ConnectionFrame(QFrame):
         btn_row.addWidget(self._stop_btn)
         main_layout.addLayout(btn_row)
         main_layout.addWidget(self._client_log)
-        main_layout.addStretch()

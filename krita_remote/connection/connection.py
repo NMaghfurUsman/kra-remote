@@ -69,6 +69,8 @@ class SocketServer(QWebSocketServer):
     def __init__(self):
         super().__init__("krita_remote", QWebSocketServer.SslMode.NonSecureMode)
 
+REMOTE_LINK : str = "ws://{}"
+
 # Wrangles the websocket server and websocket connection
 class Connection(QObject):
     
@@ -145,7 +147,11 @@ class Connection(QObject):
         else:
             self.serverStopped.emit()
 
-        print("WebSockets server at ws://{}:{}".format(ip.toString(),port))
+        print(self.remoteLink("{}:{}".format(ip.toString(),port)))
+
+    @staticmethod
+    def remoteLink(address: str) -> str:
+        return REMOTE_LINK.format(address)
 
     @pyqtSlot()
     def stopServer(self):

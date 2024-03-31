@@ -1,14 +1,16 @@
 from typing import overload, Any
-from PyQt5.QtCore import pyqtSlot
-from PyQt5.QtWidgets import QLineEdit, QTextBrowser
+from PyQt5.QtWidgets import QTextEdit, QWidget
 from ..connection import ClientListener, Connection
-from PyQt5.QtCore import pyqtProperty
 
-class ClientLog(QTextBrowser):
-    def __init__(self, c: Connection, parent: Any):
+class ClientLog(QTextEdit):
+
+    _connection : Connection
+
+    def __init__(self, c: Connection, parent: QWidget):
         super().__init__(parent)
         c.connectClientSignals(self)
         c.connectServerSignals(self)
+        self._connection = c
 
     def onClientMessage(self, msg: str):
         self.append(msg)
@@ -23,8 +25,7 @@ class ClientLog(QTextBrowser):
         self.append("Client rejected")
 
     def onServerListening(self, address: str):
-        self.append("Server listening on:")
-        self.append(address)
+        self.append(self._connection.remoteLink(address))
 
     def onServerStopped(self):
         self.append("Server stopped")

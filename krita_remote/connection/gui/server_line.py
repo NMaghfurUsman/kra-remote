@@ -8,11 +8,13 @@ class ServerLine(QLineEdit):
     
     _address: str = ""
     _listening: bool = False
+    _connection: Connection
     
     def __init__(self, c: Connection, parent = None):
         super().__init__(parent)
         self.listening = c.listening
         c.connectServerSignals(self)
+        self._connection = c
     
     @pyqtProperty(bool)
     @overload
@@ -22,7 +24,7 @@ class ServerLine(QLineEdit):
     @listening.setter
     def listening(self, listening: bool):
         if listening:
-            self.setText("Server listening on " + self._address)
+            self.setText(self._connection.remoteLink(self._address))
         else:
             self.setText("Server stopped")
         self._connected = listening
