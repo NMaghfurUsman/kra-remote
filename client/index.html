@@ -12,10 +12,12 @@
             arr.push({body: body})
         }
 
-        const dummy_connection = true
+        const dummy_connection = false
         const send = (socket, msg) => {
             if (!dummy_connection) {
                 socket.send(msg)
+            } else {
+                console.log(msg)
             }
         }
 
@@ -27,6 +29,105 @@
             }
         }
 
+        const build_active_area = (area) => {
+
+            // Tap/Multitap
+            const tap = area.getAttribute('tap')
+            const multitap = area.getAttribute('multitap')
+            area.removeAttribute('tap')
+            area.removeAttribute('multitap')
+            {
+                var html = ""
+                if (tap) {
+                    area.setAttribute('v-touch:tap','make_touch_handler(\''+tap+'\')')
+                    html+= '<div class="tap">'+tap+'</div>'
+                }
+                if (multitap) {
+                    area.setAttribute('v-touch:multitap','make_touch_handler(\''+multitap+'\')')
+                    html+= '<div class="multitap">'+multitap+'</div>'
+                }
+                const origin_label = document.createElement('div')
+                origin_label.classList.add(...['origin'])
+                origin_label.innerHTML=html
+                area.appendChild(origin_label)
+            }
+
+            // Orthogonal gestures (swipes/flicks)
+
+            const ortho_gestures = {
+                'east':  ['swipe.right', 'multiswipe.right', 'flick.right', 'multiflick.right'],
+                'west':  ['swipe.left', 'multiswipe.left', 'flick.left', 'multiflick.left'],
+                'north': ['swipe.top', 'multiswipe.top', 'flick.top', 'multiflick.top'],
+                'south': ['swipe.bottom', 'multiswipe.bottom', 'flick.bottom', 'multiflick.bottom'],
+            }
+            for (const direction in ortho_gestures) {
+                var dir_html = ""
+                const dir_label = document.createElement('div')
+                dir_label.classList.add(...[direction])
+                    for (const gesture_idx in ortho_gestures[direction]) {
+                        const gesture = ortho_gestures[direction][gesture_idx]
+                        const gesture_type = gesture.split('.')[0]
+                        const action = area.getAttribute(gesture)
+                        area.removeAttribute(gesture)
+                        if (action) {
+                            area.setAttribute('v-touch:'+gesture,"make_touch_handler(\'"+action+"\')")
+                            dir_html+="<div class='"+gesture_type+"'>"+action+"</div>"
+                        }
+                    }
+                dir_label.innerHTML=dir_html
+                area.appendChild(dir_label)
+            }
+
+            // Drag gestures
+
+            const drag = area.getAttribute('drag')
+            area.removeAttribute('drag')
+
+            if (drag) {
+                area.setAttribute("v-touch:drag","make_drag_handler("+drag+")")
+                area.setAttribute("v-touch:release","(event) => {drag_stop()}")
+            }
+
+            const label = area.getAttribute('label')
+            area.removeAttribute('label')
+            if (label) {
+                const drag_label = document.createElement('div')
+                drag_label.classList.add('origin')
+                drag_label.innerHTML = "<div>"+label+"</div>"
+                area.appendChild(drag_label)
+            }
+
+            // Keypress
+
+            const keypress = area.getAttribute('keypress')
+            const multikeypress = area.getAttribute('multikeypress')
+            area.removeAttribute('keypress')
+            area.removeAttribute('multikeypress')
+
+            {
+                var html = ""
+                if (keypress) {
+                    area.setAttribute("v-touch:press","(event)=> {press('"+keypress+"')}")
+                    area.setAttribute("v-touch:release","(event) => {release('"+keypress+"')}")
+                    html+= '<div class="tap">'+keypress+'</div>'
+                }
+                if (multikeypress) {
+                    area.setAttribute("v-touch:multipress","(event)=> {press('"+multikeypress+"')}")
+                    area.setAttribute("v-touch:multirelease","(event) => {release('"+multikeypress+"')}")
+                    html+= '<div class="multitap">'+multikeypress+'</div>'
+                }
+                if (keypress || multikeypress) {
+                    area.setAttribute("v-touch-options","{'disableClick':true}")
+                }
+                const origin_label = document.createElement('div')
+                origin_label.classList.add(...['origin'])
+                origin_label.innerHTML=html
+                area.appendChild(origin_label)
+            }
+        }
+
+        document.querySelectorAll('.active-area').forEach(build_active_area)
+
         const app = createApp({
             data() {
                 return {
@@ -35,7 +136,6 @@
                     socket: null,
                     address: get_addr_from_hash(),
                     events: [],
-                    dragging: false,
                     drag_started: false,
                     drag_origin_y: 0,
                 }
@@ -63,7 +163,7 @@
                 action(action_name) {
                     navigator.vibrate(50)
                     log(this.events, action_name)
-                    if (this.socket) {
+                    if (this.socket || dummy_connection) {
                         send(this.socket,"action:"+action_name)
                     }
                 },
@@ -82,32 +182,32 @@
                 log(arr, msg) {
                     log(arr,msg)
                 },
-                make_drag_handler(dir, actions) {
+                make_drag_handler(actions) {
                     return (ev) => {
                         if (this.drag_started) {
-                            this.drag_continue(dir, ev, actions);
+                            this.drag_continue(ev, actions);
                         } else {
-                            this.drag_start(dir, ev);
+                            this.drag_start(ev);
+                            }
                         }
-                    }
-                },
+                    },
                 make_touch_handler(action_name) {
                     return (ev) => {
                         this.action(action_name);
-                    }
-                },
-                drag_start(dir, ev) {
+                        }
+                    },
+                drag_start(ev) {
                     this.drag_started = true;
                     if (ev.clientY) {
                         this.drag_origin_y = ev.clientY;
-                    }
+                        }
                     if (ev.touches) {
                         this.drag_origin_y = ev.touches[0].clientY;
-                    }
+                        }
                     log(this.events, "drag start");
 
                 },
-                drag_continue(dir, ev, actions) {
+                drag_continue(ev, actions) {
                     const prev_y = this.drag_origin_y
                     if (ev.clientY) {
                         this.drag_origin_y = ev.clientY;
@@ -117,10 +217,10 @@
                     }
                     if (prev_y > this.drag_origin_y) {
                         log(this.events, actions['up']);
-                        if (this.socket) send(this.socket,actions['up']);
+                        send(this.socket,actions['up']);
                     } else {
                         log(this.events, actions['down']);
-                        if (this.socket) send(this.socket,actions['down']);
+                        send(this.socket,actions['down']);
                     }
                 },
                 drag_stop() {
@@ -138,49 +238,37 @@
 <body>
     <div id="app" style="padding: 0px; margin: 0px; touch-action: none">
         <div id="pad">
-            <div class="grid action-item col flat-left small-dot" v-touch-class="'touched'"
-                v-touch:drag="make_drag_handler('left', {'up': 'action:increase_brush_size', 'down':'action:decrease_brush_size'})" 
-                v-touch:release="(event) => drag_stop()">
-                <div class="label origin abs"><div class="rotate">size</div></div>
+            <div class="active-area col flat-left"
+                label="size"
+                drag='{"up": "action:increase_brush_size", "down":"action:decrease_brush_size"}'>
             </div>
-            <div class="grid action-item mid-c top-r flat-top" style="grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr"
-                v-touch:tap="make_touch_handler('eraser_preset_action')" 
-                v-touch:swipe.right="make_touch_handler('erase_action')"
-                v-touch:swipe.left="make_touch_handler('clear')"
-                v-touch:multiswipe.left="make_touch_handler('file_quit')">
-                <div class="label origin">erase_preset_action</div>
-                <div class="label east"><div class="rotate">erase_action</div></div>
-                <div class="label west"><div class="rotate-alt">clear&#8288;☝<br>file_quit&#8288;✌</div></div>
+            <div class="active-area grid9by9 mid-c top-r flat-top"
+                tap="eraser_preset_action"
+                swipe.right="erase_action"
+                swipe.left="clear"
+                multiswipe.left="file_quit">
             </div>
-            <div class="grid action-item mid-c mid-r"
-                v-touch:multitap="make_touch_handler('edit_redo')"
-                v-touch:tap="make_touch_handler('edit_undo')"
-                v-touch:swipe.right="make_touch_handler('edit_paste')"
-                v-touch:flick.right="make_touch_handler('paste_into')"
-                v-touch:multiswipe.right="make_touch_handler('paste_as_reference')"
-                v-touch:swipe.bottom="make_touch_handler('mirror_canvas')"
-                v-touch:flick.bottom="make_touch_handler('zoom_to_100pct')"
-                v-touch:swipe.top="make_touch_handler('edit_copy')"
-                v-touch:flick.top="make_touch_handler('edit_cut')"
-                v-touch:swipe.left="make_touch_handler('file_save')"
-                v-touch:flick.left="make_touch_handler('file_save_as')">
-                <div class="label origin">edit_undo&#8288;☝<br>edit_redo&#8288;</div>
-                <div class="label east rotate">edit_paste&#8288;☝<br>paste_into&#8288;⤵️<br>paste_as_reference&#8288;✌</div>
-                <div class="label west rotate-alt">file_save&#8288;☝</div>
-                <div class="label south"><div>mirror_canvas&#8288;☝</div></div>
-                <div class="label north"><div>edit_copy&#8288;☝</div></div>
+            <div class="active-area grid9by9 mid-c mid-r"
+                multitap="edit_redo"
+                tap="edit_undo"
+                swipe.right="edit_paste"
+                flick.right="paste_into"
+                multiswipe.right="paste_as_reference"
+                swipe.bottom="mirror_canvas"
+                flick.bottom="zoom_to_100pct"
+                swipe.top="edit_copy"
+                flick.top="edit_cut"
+                swipe.left="file_save"
+                flick.left="file_save_as">
             </div>
-            <div class="grid action-item mid-c bot-r flat-bottom" style="grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr"
-                v-touch:press="(event) => press('Key_Shift')" v-touch:release="(event) => release('Key_Shift')"
-                v-touch:multipress="(event) => press('Key_Control')" v-touch:multirelease="(event) => release('Key_Control')"
-                v-touch-options="{'disableClick':true}">
-                <div class="label origin"><div>Key_Shift</div></div>
+            <div class="active-area grid9by9 mid-c bot-r flat-bottom"
+                keypress="Key_Shift"
+                multikeypress="Key_Control">
             </div>
-            <div class="grid action-item col flat-right" v-touch-class="'touched'"
-                v-touch:drag="make_drag_handler('right', {'up': 'action:increase_opacity', 'down':'action:decrease_opacity'})" 
-                v-touch:release="(event) => drag_stop()">
-                <div class="label origin abs"><div class="rotate">opacity</div></div>
-            </div>
+            <div class="active-area col flat-right"
+                 label="opacity"
+                 drag='{"up": "action:increase_opacity", "down":"action:decrease_opacity"}'>
+                </div>
         </div>
         <div v-if="!connected && !dummy_connection" id="connection"
         v-touch:tap="promptConnection" style="justify-items: center">

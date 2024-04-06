@@ -1,117 +1,119 @@
 :root {
-    color-scheme: light dark;
-  }
-
-  @media (prefers-color-scheme: light) {
-    body {
-      color: black;
-      background-color: white;
-    }
-    .action-item {
-      border-color: black;
-    }
-  }
-  
-  @media (prefers-color-scheme: dark) {
-    body {
-      color: white;
-      background-color: black;
-    }
-    .action-item {
-      border-color: white;
-    }
-  }
-
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: light) {
   body {
-    margin: 0px;
-    padding: 0px;
-    overscroll-behavior: contain;
+    color: black;
+    background-color: white;
   }
-  
-  .touched {
-    background-color: pink;
-    opacity: 0.2;
+  .active-area {
+    border-color: black;
   }
-
-
-
-  .mid-c {grid-column: 2;}
-  .top-r{ grid-row: 1}
-  .mid-r{ grid-row: 2}
-  .bot-r{ grid-row: 3}
-  .col { grid-row: 1/4;}
-
-  #pad {
-    position: fixed;
-        z-index: 0;
-        width: 100vw; 
-        height:100vh; 
-        display:grid;
-        grid-gap: 0.2em;
-        grid-template-columns: 0.2fr 0.6fr 0.2fr;
-        grid-template-rows: 0.25fr 0.5fr 0.25fr;
+}
+@media (prefers-color-scheme: dark) {
+  body {
+    color: #268bd2;
+    background-color: #002b36;
   }
-
-  #connection {
-    width:100vw; height:100vh; opacity: 0.2;background-color:green;z-index:2;position:fixed;
+  .active-area {
+    border-color: #586e75 ;
+    box-shadow: inset 1px 1px 0 0 #073642,
+                inset -1px -1px 0 0 #073642;
   }
-
-  #event-log {
-    position: fixed; z-index: -1; user-select: none; touch-action: none
-  }
-
-
-  .north {
-    grid-column: 2;
-    grid-row: 1;
-  }
-  .south {
-    grid-column: 2;
-    grid-row: 3;
-  }
-  .west {
-    grid-column: 1;
-    grid-row: 2;
-  }
-  .east {
-    grid-column: 3;
-    grid-row: 2;
-  }
-  .origin {
-    grid-column: 2;
-    grid-row: 2;
-  }
-
-.abs {
-  position: absolute;
 }
 
-.grid {
+body {
+  font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0px;
+  padding: 0px;
+  overscroll-behavior: contain;
+}
+
+.mid-c { grid-column: 2;}
+.top-r { grid-row: 1}
+.mid-r { grid-row: 2}
+.bot-r { grid-row: 3}
+.col   { grid-row: 1/4;}
+
+#pad {
+  position: fixed;
+  z-index: 0;
+  width: 100vw;
+  height:100vh;
+  display: grid;
+  grid-gap: 0.2em;
+  grid-template-columns: 0.2fr 0.6fr 0.2fr;
+  grid-template-rows: 0.25fr 0.5fr 0.25fr;
+}
+
+#connection {
+  width: 100vw;
+  height: 100vh;
+  opacity: 0.2;
+  background-color: green;
+  z-index: 2;
+  position: fixed;
+}
+
+#event-log {
+  display: none;
+  position: fixed;
+  z-index: -1;
+  user-select: none;
+  touch-action: none
+}
+
+.north {
+  grid-column: 2;
+  grid-row: 1;
+}
+.south {
+  grid-column: 2;
+  grid-row: 3;
+}
+.west {
+  grid-column: 1;
+  grid-row: 2;
+}
+.east {
+  grid-column: 3;
+  grid-row: 2;
+}
+.origin {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.active-area {
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 0.25rem;
   display: grid;
   align-items: center;
   justify-items: center;
 }
 
-.rotate {
-  transform: rotate(90deg);
+.active-area div div {
+  display:flex;
 }
-.rotate-alt {
+
+.active-area div {
+  user-select: none;
+  width: 0px;
+  justify-content: center;
+}
+
+.active-area .west {
   transform: rotate(-90deg);
 }
 
-.label {
-  font-family: "Noto Color Emoji", sans-serif;
-  display:flex;
-  justify-content: center;
-  width:0px;
-  user-select: none;
-  z-index: -1
+.active-area .east {
+  transform: rotate(90deg);
 }
 
-.action-item {
-  border-width: 1px;
-  border-style: dotted;
-  border-radius: 1em;
+.grid9by9 {
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr
 }
 
 .flat-top {
@@ -138,4 +140,35 @@
   border-left-width: 0px
 }
 
-.smalldot { background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc1JyBoZWlnaHQ9JzUnPgo8cmVjdCB3aWR0aD0nNScgaGVpZ2h0PSc1JyBmaWxsPScjZmZmJy8+CjxyZWN0IHdpZHRoPScxJyBoZWlnaHQ9JzEnIGZpbGw9JyNjY2MnLz4KPC9zdmc+"); background-repeat: repeat; }
+.tap:before, .swipe:before {
+  font-family: "Noto Color Emoji", sans-serif;
+  content: "☝"
+}
+.multitap:before, .multiswipe:before {
+  font-family: "Noto Color Emoji", sans-serif;
+  content: "✌"
+}
+.flick:before {
+  font-family: "Noto Color Emoji", sans-serif;
+  content: "⤵️"
+}
+.multiflick:before {
+  font-family: "Noto Color Emoji", sans-serif;
+  content: "⤵️⤵️"
+}
+
+.tap, .swipe {
+  opacity: 1;
+}
+
+.multitap, .multiswipe {
+  opacity: 0.6;
+}
+
+.flick {
+  opacity: 0.4;
+}
+
+.multiflick {
+  opacity: 0.2;
+}
