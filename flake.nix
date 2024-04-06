@@ -30,10 +30,10 @@
               modules = [
                 {
                   # https://devenv.sh/reference/options/
-                  packages = [ pkgs.krita pkgs.python3Packages.pyqt5 pkgs.xwayland pkgs.i3];
+                  packages = [ pkgs.krita pkgs.python3Packages.pyqt5];
                   enterShell = ''
                     echo "Dev Shell for Krita Remote"
-                    export PYTHONPATH="${pkgs.python3Packages.pyqt5}/lib/python3.11/site-packages/:$PYTHONPATH"
+                    export PYTHONPATH="${pkgs.python3Packages.pyqt5}/lib/python3.11/site-packages/"
                     echo "\$PYTHONPATH=$PYTHONPATH"
                   '';
 
