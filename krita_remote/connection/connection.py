@@ -88,6 +88,8 @@ class Connection(QObject):
     action = pyqtSignal(str)
     press = pyqtSignal(str)
     release = pyqtSignal(str)
+    tool = pyqtSignal(str)
+
     
     def __init__(self):
         super().__init__()
@@ -116,13 +118,16 @@ class Connection(QObject):
             
     @pyqtSlot(str)
     def onMessage(self, msg: str):
-        if (msg.startswith("action:")):
+        if (msg.startswith("action:tool:")):
+            action_name = msg.split(":")[2]
+            self.tool.emit(action_name)
+        elif (msg.startswith("action:")):
             action_name = msg.split(":")[1]
             self.action.emit(action_name)
-        if (msg.startswith("press:")):
+        elif (msg.startswith("press:")):
             press = msg.split(":")[1]
             self.press.emit(press)
-        if (msg.startswith("release:")):
+        elif (msg.startswith("release:")):
             release = msg.split(":")[1]
             self.release.emit(release)
 

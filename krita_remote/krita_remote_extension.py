@@ -2,6 +2,7 @@ from typing import Any
 from krita import Extension
 from .connection import Connection
 from .api_krita import Krita
+from .api_krita.enums import Tool
 from PyQt5.QtCore import pyqtProperty, pyqtSlot, QEvent, Qt
 from PyQt5.QtWidgets import QWidget, QApplication
 from PyQt5.QtGui import QCursor,QKeyEvent
@@ -31,6 +32,7 @@ class KritaRemoteExtension(Extension):
         self._connection.action.connect(self.action)
         self._connection.press.connect(self.press)
         self._connection.release.connect(self.release)
+        self._connection.tool.connect(self.tool)
 
     def setup(self):
         pass
@@ -64,3 +66,8 @@ class KritaRemoteExtension(Extension):
     def action(self, action_name: str):
         print("action: {}".format(action_name))
         Krita.trigger_action(action_name)
+
+    @pyqtSlot(str)
+    def tool(self, tool_name: str):
+        print("tool: {}".format(tool_name))
+        Krita.active_tool = Tool(tool_name)
