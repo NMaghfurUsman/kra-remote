@@ -1,32 +1,59 @@
 :root {
   color-scheme: light dark;
 }
+
 @media (prefers-color-scheme: light) {
-  body {
-    color: black;
-    background-color: white;
-  }
   .active-area {
-    border-color: black;
+    color: #2b90d8;
+    border-color: #8faaab ;
+    box-shadow: inset 1px 1px 0 0 #f1e9d2
+  }
+
+  .flick, .multiflick {
+    color: #8faaab;
+  }
+  #connection, #pad, .active-area {
+    background-color: #fbf7ef;
+  }
+  #connection {
+    color:#2b90d8;
+  }
+  .activated {
+    background-color: #f1e9d2   ;
   }
 }
 @media (prefers-color-scheme: dark) {
-  body {
-    color: #268bd2;
-    background-color: #002b36;
-  }
+
   .active-area {
-    border-color: #586e75 ;
-    box-shadow: inset 1px 1px 0 0 #073642,
-                inset -1px -1px 0 0 #073642;
+    color: #268bd2;
+    border-color: #5b7279 ;
+    box-shadow: inset 1px 1px 0 0 #073642
+  }
+
+  .flick, .multiflick {
+    color: #657b83;
+  }
+  #connection, #pad, .active-area {
+    background-color: #002d38;
+  }
+  #connection {
+    color: #268bd2;
+  }
+  .activated {
+    background-color: #093946;
   }
 }
 
 body {
-  font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: sans-serif;
   margin: 0px;
   padding: 0px;
   overscroll-behavior: contain;
+}
+
+#connection {
+  font-weight: bold;
+  font-size: 18pt;
 }
 
 .mid-c { grid-column: 2;}
@@ -41,26 +68,19 @@ body {
   width: 100vw;
   height:100vh;
   display: grid;
-  grid-gap: 0.2em;
-  grid-template-columns: 0.2fr 0.6fr 0.2fr;
+  grid-template-columns: 0.15fr 0.7fr 0.15fr;
   grid-template-rows: 0.25fr 0.5fr 0.25fr;
 }
 
 #connection {
   width: 100vw;
   height: 100vh;
-  opacity: 0.2;
-  background-color: green;
+  opacity: 0.9;
   z-index: 2;
   position: fixed;
-}
-
-#event-log {
-  display: none;
-  position: fixed;
-  z-index: -1;
-  user-select: none;
-  touch-action: none
+  justify-content: center;
+  align-items: center;
+  display:flex;
 }
 
 .north {
@@ -85,15 +105,20 @@ body {
 }
 
 .active-area {
+  user-select: none;
+  touch-action: none;
   border-width: 1px;
   border-style: solid;
-  border-radius: 0.25rem;
   display: grid;
   align-items: center;
   justify-items: center;
 }
 
 .active-area div div {
+  font-stretch: 50%;
+  user-select: none;
+  touch-action: none;
+  text-wrap: nowrap;
   display:flex;
 }
 
@@ -103,7 +128,7 @@ body {
   justify-content: center;
 }
 
-.active-area .west {
+.active-area .west, .col .origin {
   transform: rotate(-90deg);
 }
 
@@ -116,59 +141,27 @@ body {
   grid-template-rows: 1fr 1fr 1fr
 }
 
-.flat-top {
-  border-top-left-radius: 0px;
-  border-top-right-radius: 0px;
-  border-top-width: 0px
+.tap, .swipe, .col .origin {
+  filter: drop-shadow(0 0 5px);
 }
 
-.flat-bottom {
-  border-bottom-left-radius: 0px;
-  border-bottom-right-radius: 0px;
-  border-bottom-width: 0px
+.flick, .swipe, .tap {
+  scale: 1.2;
 }
 
-.flat-right {
-  border-bottom-right-radius: 0px;
-  border-top-right-radius: 0px;
-  border-right-width: 0px
+.origin {
+  scale: 1.2;
 }
 
-.flat-left {
-  border-bottom-left-radius: 0px;
-  border-top-left-radius: 0px;
-  border-left-width: 0px
+.multitap, .multiswipe, .multiflick {
+  font-style: oblique;
 }
 
-.tap:before, .swipe:before {
-  font-family: "Noto Color Emoji", sans-serif;
-  content: "☝"
-}
-.multitap:before, .multiswipe:before {
-  font-family: "Noto Color Emoji", sans-serif;
-  content: "✌"
-}
-.flick:before {
-  font-family: "Noto Color Emoji", sans-serif;
-  content: "⤵️"
-}
-.multiflick:before {
-  font-family: "Noto Color Emoji", sans-serif;
-  content: "⤵️⤵️"
+.col {
+  scale: 1.1;
+  filter: drop-shadow(0 0 8px);
 }
 
 .tap, .swipe {
-  opacity: 1;
-}
-
-.multitap, .multiswipe {
-  opacity: 0.6;
-}
-
-.flick {
-  opacity: 0.4;
-}
-
-.multiflick {
-  opacity: 0.2;
+  font-weight: bold;
 }

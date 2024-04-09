@@ -8,11 +8,8 @@
         import { createApp } from 'https://unpkg.com/vue@3.4.21/dist/vue.esm-browser.js'
         import vue3TouchEvents from "./vue3-touch-events.js"
 
-        const log = (arr, body) => {
-            arr.push({body: body})
-        }
-
         const dummy_connection = false
+
         const send = (socket, msg) => {
             if (!dummy_connection) {
                 socket.send(msg)
@@ -39,12 +36,14 @@
             {
                 var html = ""
                 if (tap) {
-                    area.setAttribute('v-touch:tap','make_touch_handler(\''+tap+'\')')
-                    html+= '<div class="tap">'+tap+'</div>'
+                    const [name, label] = tap.split('.')
+                    area.setAttribute('v-touch:tap',`make_touch_handler("${name}")`)
+                    html+= `<div class="tap">${(label ? label : name)}</div>`
                 }
                 if (multitap) {
-                    area.setAttribute('v-touch:multitap','make_touch_handler(\''+multitap+'\')')
-                    html+= '<div class="multitap">'+multitap+'</div>'
+                    const [name, label] = multitap.split('.')
+                    area.setAttribute('v-touch:multitap',`make_touch_handler("${name}")`)
+                    html+= `<div class="multitap">${(label ? label : name)}</div>`
                 }
                 const origin_label = document.createElement('div')
                 origin_label.classList.add(...['origin'])
@@ -70,8 +69,9 @@
                         const action = area.getAttribute(gesture)
                         area.removeAttribute(gesture)
                         if (action) {
-                            area.setAttribute('v-touch:'+gesture,"make_touch_handler(\'"+action+"\')")
-                            dir_html+="<div class='"+gesture_type+"'>"+action+"</div>"
+                            const [name, label] = action.split('.')
+                            area.setAttribute(`v-touch:${gesture}`,`make_touch_handler("${name}")`)
+                            dir_html+=`<div class="${gesture_type}">${(label ? label : name)}</div>`
                         }
                     }
                 dir_label.innerHTML=dir_html
@@ -81,20 +81,28 @@
             // Drag gestures
 
             const drag = area.getAttribute('drag')
+            const multidrag = area.getAttribute('multidrag')
             area.removeAttribute('drag')
+            area.removeAttribute('multidrag')
 
-            if (drag) {
-                area.setAttribute("v-touch:drag","make_drag_handler("+drag+")")
-                area.setAttribute("v-touch:release","(event) => {drag_stop()}")
-            }
+            {
+                if (drag) {
+                    area.setAttribute("v-touch:drag",`make_drag_handler(${drag})`)
+                    area.setAttribute("v-touch:release","(event) => {drag_stop()}")
+                }
+                if (multidrag) {
+                    area.setAttribute("v-touch:multidrag",`make_drag_handler(${multidrag})`)
+                    area.setAttribute("v-touch:multirelease","(event) => {drag_stop()}")
+                }
 
-            const label = area.getAttribute('label')
-            area.removeAttribute('label')
-            if (label) {
-                const drag_label = document.createElement('div')
-                drag_label.classList.add('origin')
-                drag_label.innerHTML = "<div>"+label+"</div>"
-                area.appendChild(drag_label)
+                const label = area.getAttribute('label')
+                area.removeAttribute('label')
+                if (label) {
+                    const drag_label = document.createElement('div')
+                    drag_label.classList.add('origin')
+                    drag_label.innerHTML = "<div>"+label+"</div>"
+                    area.appendChild(drag_label)
+                }
             }
 
             // Keypress
@@ -107,14 +115,16 @@
             {
                 var html = ""
                 if (keypress) {
-                    area.setAttribute("v-touch:press","(event)=> {press('"+keypress+"')}")
-                    area.setAttribute("v-touch:release","(event) => {release('"+keypress+"')}")
-                    html+= '<div class="tap">'+keypress+'</div>'
+                    const [name, label] = keypress.split('.')
+                    area.setAttribute("v-touch:press",`(event)=> {press("${name}")}`)
+                    area.setAttribute("v-touch:release",`(event) => {release("${name}")}`)
+                    html+= `<div class="tap">${(label ? label : name)}</div>`
                 }
                 if (multikeypress) {
-                    area.setAttribute("v-touch:multipress","(event)=> {press('"+multikeypress+"')}")
-                    area.setAttribute("v-touch:multirelease","(event) => {release('"+multikeypress+"')}")
-                    html+= '<div class="multitap">'+multikeypress+'</div>'
+                    const [name, label] = multikeypress.split('.')
+                    area.setAttribute("v-touch:multipress",`(event)=> {press("${name}")}`)
+                    area.setAttribute("v-touch:multirelease",`(event) => {release("${name}")}`)
+                    html+= `<div class="multitap">${(label ? label : name)}</div>`
                 }
                 if (keypress || multikeypress) {
                     area.setAttribute("v-touch-options","{'disableClick':true}")
@@ -124,6 +134,8 @@
                 origin_label.innerHTML=html
                 area.appendChild(origin_label)
             }
+
+            area.setAttribute("v-touch-options",'{"touchClass":"activated"}')
         }
 
         document.querySelectorAll('.active-area').forEach(build_active_area)
@@ -145,42 +157,42 @@
                     this.socket = new WebSocket(this.address);
                     this.socket.addEventListener("open", (event) => {
                         this.connected = true;
-                        log(this.events, "socked opened")
+                        document.body.requestFullscreen()
                     });
                     this.socket.addEventListener("close", (event) => {
                         this.connected = false;
-                        log(this.events, "socket closed")
+                        console.log("connection refused");
                     });
                     this.socket.addEventListener("message", (event) => {
-                        log(this.events, "message received:" + event.data)
                     })
                 },
                 promptConnection(event) {
                     this.address = prompt("Connect to WebSocket server", get_addr_from_hash())
-                    this.connect()
+                    if (this.dummy_connection) {
+                        this.connected = true;
+                        document.body.requestFullscreen()
+                    } else {
+                        this.connect()
+                    }
 
                 },
                 action(action_name) {
                     navigator.vibrate(50)
-                    log(this.events, action_name)
                     if (this.socket || dummy_connection) {
                         send(this.socket,"action:"+action_name)
                     }
                 },
                 press(key) {
-                    log(this.events, "press:"+key)
+                    var actual_key = key.split('.')[0]
                     if (this.socket) {
-                        send(this.socket,"press:"+key)
+                        send(this.socket,"press:"+actual_key)
                     }
                 },
                 release(key) {
-                    log(this.events, "release:"+key)
+                    var actual_key = key.split('.')[0]
                     if (this.socket) {
-                        send(this.socket,"release:"+key)
+                        send(this.socket,"release:"+actual_key)
                     }
-                },
-                log(arr, msg) {
-                    log(arr,msg)
                 },
                 make_drag_handler(actions) {
                     return (ev) => {
@@ -193,7 +205,12 @@
                     },
                 make_touch_handler(action_name) {
                     return (ev) => {
-                        this.action(action_name);
+                        var actual_name = action_name.split('.')
+                        if (actual_name[0] == action_name) {
+                            this.action(action_name);
+                        } else {
+                            this.action(actual_name[0]);
+                        }
                         }
                     },
                 drag_start(ev) {
@@ -204,8 +221,6 @@
                     if (ev.touches) {
                         this.drag_origin_y = ev.touches[0].clientY;
                         }
-                    log(this.events, "drag start");
-
                 },
                 drag_continue(ev, actions) {
                     const prev_y = this.drag_origin_y
@@ -216,10 +231,8 @@
                         this.drag_origin_y = ev.touches[0].clientY;
                     }
                     if (prev_y > this.drag_origin_y) {
-                        log(this.events, actions['up']);
                         send(this.socket,actions['up']);
                     } else {
-                        log(this.events, actions['down']);
                         send(this.socket,actions['down']);
                     }
                 },
@@ -228,7 +241,6 @@
                 }
             },
             mounted() {
-                log(this.events, "app mounted")
             }
         }).use(vue3TouchEvents, {})
         app.mount('#app')
@@ -236,48 +248,47 @@
     <link rel="stylesheet" href="/style.css"></a>
 </head>
 <body>
-    <div id="app" style="padding: 0px; margin: 0px; touch-action: none">
+    <div id="app" style="padding: 0px; margin: 0p;">
         <div id="pad">
             <div class="active-area col flat-left"
                 label="size"
+                multidrag='{"up": "action:increase_opacity", "down":"action:decrease_opacity"}'
                 drag='{"up": "action:increase_brush_size", "down":"action:decrease_brush_size"}'>
             </div>
             <div class="active-area grid9by9 mid-c top-r flat-top"
-                tap="eraser_preset_action"
-                swipe.right="erase_action"
+                tap="tool:KisToolTransform.transform"
+                swipe.right="erase_action.erase mode"
                 swipe.left="clear"
-                multiswipe.left="file_quit">
+                swipe.bottom="edit_paste.paste"
+                multiswipe.left="file_quit.quit">
             </div>
             <div class="active-area grid9by9 mid-c mid-r"
-                multitap="edit_redo"
-                tap="edit_undo"
-                swipe.right="edit_paste"
-                flick.right="paste_into"
-                multiswipe.right="paste_as_reference"
-                swipe.bottom="mirror_canvas"
-                flick.bottom="zoom_to_100pct"
-                swipe.top="edit_copy"
-                flick.top="edit_cut"
-                swipe.left="file_save"
-                flick.left="file_save_as">
+                multitap="edit_redo.redo"
+                tap="edit_undo.undo"
+                swipe.right="eraser_preset_action.eraser"
+                flick.right="paste_into.paste in"
+                multiswipe.right="paste_as_reference.paste ref"
+                swipe.bottom="mirror_canvas.mirror"
+                multiswipe.bottom="deselect.deslect"
+                flick.bottom="zoom_to_100pct.zoom 100%"
+                swipe.top="edit_cut.cut"
+                multiswipe.top="tool:KisToolSelectRectangular.select"
+                flick.top="edit_copy.copy"
+                swipe.left="tool:KritaShape/KisToolBrush.brush"
+                flick.left="file_save_as.save as">
             </div>
             <div class="active-area grid9by9 mid-c bot-r flat-bottom"
-                keypress="Key_Shift"
-                multikeypress="Key_Control">
+                keypress="Key_Shift.shift"
+                multikeypress="Key_Control.ctrl">
             </div>
             <div class="active-area col flat-right"
                  label="opacity"
                  drag='{"up": "action:increase_opacity", "down":"action:decrease_opacity"}'>
                 </div>
         </div>
-        <div v-if="!connected && !dummy_connection" id="connection"
-        v-touch:tap="promptConnection" style="justify-items: center">
+        <div v-if="!connected" id="connection"
+        v-touch:tap="promptConnection">
             <p>Tap anywhere to connect</p>
         </div>
-        <ul id="event-log" draggable="false">
-            <li v-for="e in events">
-                {{ e.body }}
-            </li>
-        </ul>
     </div>
 </body>
