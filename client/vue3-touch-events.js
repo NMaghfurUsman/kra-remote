@@ -246,8 +246,10 @@ var vueTouchEvents = {
                 isMouseEvent = event.type.indexOf('mouse') >= 0;
 
             // ignore residual touches from multitouch events
-            if (event.touches.length == 1 || (!$this.initialTouchStarted && $this.touchUpgraded)) {
-                return;
+            if (isTouchEvent) {
+                if (event.touches.length == 1 || (!$this.initialTouchStarted && $this.touchUpgraded)) {
+                    return;
+                }
             }
 
             if (isTouchEvent) {
