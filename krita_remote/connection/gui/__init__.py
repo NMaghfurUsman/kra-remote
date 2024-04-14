@@ -1,13 +1,3 @@
-from .server_line import ServerLine
-from .client_line import ClientLine
-from .server_button import ServerButton
-from .connection_frame import ConnectionFrame
-from .client_log import ClientLog
+from .dock_frame import DockFrame
 
-__all__ = [
-    "ServerLine",
-    "ClientLine",
-    "ServerButton",
-    "ConnectionFrame",
-    "ClientLog",
-]
+__all__ = ["DockFrame"]

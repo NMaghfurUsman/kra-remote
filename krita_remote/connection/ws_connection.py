@@ -69,10 +69,8 @@ class SocketServer(QWebSocketServer):
     def __init__(self):
         super().__init__("krita_remote", QWebSocketServer.SslMode.NonSecureMode)
 
-REMOTE_LINK : str = "ws://{}"
-
 # Wrangles the websocket server and websocket connection
-class Connection(QObject):
+class WSConnection(QObject):
     
     server: SocketServer
     client: Optional[Socket] = None
@@ -89,7 +87,6 @@ class Connection(QObject):
     press = pyqtSignal(str)
     release = pyqtSignal(str)
     tool = pyqtSignal(str)
-
     
     def __init__(self):
         super().__init__()
@@ -140,11 +137,8 @@ class Connection(QObject):
         if (self.server): 
             if (self.server.isListening()): return
         if (not self.server): self.server = SocketServer()
-
-        # initialize server
-        # host IP on local network, qt5 doesn't have a way to retrieve this?
+        
         ip: QHostAddress = QHostAddress(gethostbyname(gethostname()))
-        # random port, later check for availability first
         port: int = randint(9999,pow(2,16))
 
         if (self.server.listen(ip, port)):
@@ -152,11 +146,12 @@ class Connection(QObject):
         else:
             self.serverStopped.emit()
 
-        print(self.remoteLink("{}:{}".format(ip.toString(),port)))
-
-    @staticmethod
-    def remoteLink(address: str) -> str:
-        return REMOTE_LINK.format(address)
+    @pyqtProperty(str)
+    def address(self) -> str | None:
+        if (self.server and self.server.isListening()):
+            return self.server.serverUrl().toString()
+        else:
+            return None
 
     @pyqtSlot()
     def stopServer(self):

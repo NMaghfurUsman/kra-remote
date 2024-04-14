@@ -1,12 +1,12 @@
 from typing import overload, Any
 from PyQt5.QtWidgets import QTextEdit, QWidget
-from ..connection import ClientListener, Connection
+from ..ws_connection import ClientListener, WSConnection
 
-class ClientLog(QTextEdit):
+class EventLog(QTextEdit):
 
-    _connection : Connection
+    _connection : WSConnection
 
-    def __init__(self, c: Connection, parent: QWidget):
+    def __init__(self, c: WSConnection, parent: QWidget):
         super().__init__(parent)
         c.connectClientSignals(self)
         c.connectServerSignals(self)
@@ -25,7 +25,7 @@ class ClientLog(QTextEdit):
         self.append("Client rejected")
 
     def onServerListening(self, address: str):
-        self.append(self._connection.remoteLink(address))
+        self.append("Server listening on {}".format(self._connection.address))
 
     def onServerStopped(self):
         self.append("Server stopped")

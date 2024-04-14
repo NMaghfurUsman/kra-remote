@@ -1,25 +1,23 @@
 from typing import Any
-from krita import DockWidget
-from .connection.gui.connection_frame import ConnectionFrame
+from krita import DockWidget # type: ignore
+from .connection.gui.dock_frame import DockFrame
 from .krita_remote_extension import KritaRemoteExtension
 from .api_krita import Krita
-from PyQt5.QtWidgets import QWidget
 
 DOCKER_TITLE: str = "Krita Remote"
 
 class KritaRemoteDockWidget(DockWidget):
     
     _extension: KritaRemoteExtension
-    _connection_frame: ConnectionFrame
+    _dock_frame: DockFrame
 
     def __init__(self):
         super().__init__()
         self.setWindowTitle(DOCKER_TITLE)
         
         self._extension: KritaRemoteExtension = [e for e in Krita.instance.extensions() if e.__class__.__name__=="KritaRemoteExtension"][0]
-        self._connection_frame = ConnectionFrame(self._extension.connection, self)
-        
-        self.setWidget(self._connection_frame)
+        self._dock_frame = DockFrame(self._extension.connection, self) # type: ignore
+        self.setWidget(self._dock_frame)
 
     def canvasChanged(self, canvas: Any):
         if canvas:

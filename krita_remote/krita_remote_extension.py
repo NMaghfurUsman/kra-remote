@@ -1,11 +1,14 @@
 from typing import Any
-from krita import Extension
-from .connection import Connection
+from krita import Extension # type: ignore
+from .connection import WSConnection
 from .api_krita import Krita
 from .api_krita.enums import Tool
 from PyQt5.QtCore import pyqtProperty, pyqtSlot, QEvent, Qt
 from PyQt5.QtWidgets import QWidget, QApplication
 from PyQt5.QtGui import QCursor,QKeyEvent
+from .connection.http_server import HTTPServer
+from threading import Thread
+from .connection.gui.qr_window import QRDialog
 
 def find_current_canvas():
     app = Krita.instance
@@ -22,28 +25,37 @@ def find_current_canvas():
             return canvas
 
 class KritaRemoteExtension(Extension):
-    
-    _connection: Connection
+
+    _connection: WSConnection
+    _server_thread: Thread
+    _server: HTTPServer
 
     def __init__(self, parent):
         super().__init__(parent)
-        
-        self._connection = Connection()
+
+    def setup(self):
+        self._connection = WSConnection()
         self._connection.action.connect(self.action)
         self._connection.press.connect(self.press)
         self._connection.release.connect(self.release)
         self._connection.tool.connect(self.tool)
 
-    def setup(self):
-        pass
+        self._server = HTTPServer()
+        self._server_thread = Thread(target=self._server.serve_forever)
+        self._server_thread.daemon = True
+        self._server_thread.start()
 
     def createActions(self, window):
         pass
-            
-    @pyqtProperty(Connection)
-    def connection(self) -> Connection:
+
+    @pyqtProperty(WSConnection)
+    def connection(self) -> WSConnection:
         return self._connection
-    
+
+    @pyqtProperty(HTTPServer)
+    def server(self) -> HTTPServer:
+        return self._server
+
     @pyqtSlot(str)
     def press(self, key: str):
         print("press: {}".format(key))
@@ -52,7 +64,7 @@ class KritaRemoteExtension(Extension):
         if not canvas.isActiveWindow():
             canvas.activateWindow()
         QApplication.sendEvent(canvas, press)
-        
+
     @pyqtSlot(str)
     def release(self, key: str):
         print("release: {}".format(key))
@@ -61,7 +73,7 @@ class KritaRemoteExtension(Extension):
         if not canvas.isActiveWindow():
             canvas.activateWindow()
         QApplication.sendEvent(canvas, release)
-        
+
     @pyqtSlot(str)
     def action(self, action_name: str):
         print("action: {}".format(action_name))

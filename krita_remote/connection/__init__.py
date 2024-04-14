@@ -1,3 +1,3 @@
-from .connection import Connection
+from .ws_connection import WSConnection
 
-__all__ = ["Connection"]
+__all__ = ["WSConnection"]
