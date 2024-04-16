@@ -2,11 +2,11 @@
 
 Krita Remote is a Python extension that allows Krita to be remotely controlled over a WebSockets connection. It does this using PyQt5's QtWebSockets module.
 
-![Krita Remote docker](docker_screenshot.png)
+![Krita Remote webapp and Krita Remote docker](docker_screenshot.png)
 
 However, the official Krita download does not come with QtWebSockets, so this repository supplies a so-called `nix` overlay that makes it easy for Linux users to compile a custom version of Krita on your own computer, with the QtWebSockets module enabled.
 
-This extension also supplies a webapp to use on your phone. By performing directional flick gestures on the webapp, you can remotely control Krita via the Krita Remote extension, and trigger actios such as Undo, Copy/Paste, switching to Brush, Eraser, resizing, even keyboard keys like Shift, Ctrl can be triggerd. etc. The webapp is designed with large target areas, so that very specific gestures can be performed accurately without your direct line-of-sight to the touchscreen.
+This extension also supplies a webapp to use on your phone. By performing directional flick gestures on the webapp, you can remotely control Krita via the Krita Remote extension, and trigger actions such as Undo, Copy/Paste, switching to Brush, Eraser, resizing, even keyboard keys like Shift, Ctrl can be triggered. etc. The webapp is designed with large target areas, so that very specific gestures can be performed accurately without your direct line-of-sight to the touchscreen.
 
 ## Requiremets
 
@@ -48,7 +48,7 @@ The Krita Remote docker also displays an event log.
 
 ## Client
 
-The client (ie, the remote control) is a simple Vue webapp that is served using Python's built-in HTTP server, which is also started in Krita by the Python extesion. The Vue webapp uses a modified version of [vue3-touch-events](https://github.com/robinrodricks/vue3-touch-events) for detecting touchscreen gestures and triggering handlers.
+The client (ie, the remote control) is a simple Vue webapp that is served using Python's built-in HTTP server, which is also started in Krita by the Python extension. The Vue webapp uses a modified version of [vue3-touch-events](https://github.com/robinrodricks/vue3-touch-events) for detecting touchscreen gestures and triggering actions in Krita.
 
  - tap
  - drag
@@ -57,7 +57,7 @@ The client (ie, the remote control) is a simple Vue webapp that is served using 
  - swipe (top/bottom/left/right)
  - flick (top/bottom/left/right), this is a directional swipe gesture that is followed immediately by a swipe gesture back to where you started, without releasing your finger.
 
-I have added basic multi-touch gestures, so different handlers can be triggered for touch gestures that are performed with more than one finger (it only discerns multi-finger gestures from single-finger gestures, so using 2 or more fingers trigger the same handler)
+I have added basic multi-touch gestures, so a different action is triggered for touch gestures that are performed with more than one finger (it only distinguishes multi-finger gestures from single-finger gestures, so using 2 or more fingers will trigger the same action)
 
  - multitap
  - multipress
@@ -67,6 +67,8 @@ I have added basic multi-touch gestures, so different handlers can be triggered 
  - TODO: multiflick
 
  This client is just an experimental proof-of-concept. It doesn't even have to be a webapp, anything that can connect to WebSockets are just as capable.
+
+ It is not customizable yet, but if you really want to change the actions then just edit the`index.html` file.
 
  ## WebSockets Server
 
