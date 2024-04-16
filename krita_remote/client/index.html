@@ -259,6 +259,7 @@
                 tap="tool:KisToolTransform.transform"
                 swipe.right="erase_action.erase mode"
                 swipe.left="clear"
+                flick.left="view_toggledockers.canvas only"
                 swipe.bottom="edit_paste.paste"
                 multiswipe.left="file_quit.quit">
             </div>
@@ -266,13 +267,13 @@
                 multitap="edit_redo.redo"
                 tap="edit_undo.undo"
                 swipe.right="eraser_preset_action.eraser"
-                flick.right="paste_into.paste in"
-                multiswipe.right="paste_as_reference.paste ref"
+                flick.right="tool:KisToolEncloseAndFill.enclose fill"
+                multiswipe.right="tool:KritaShape/KisToolLine.line"
                 swipe.bottom="mirror_canvas.mirror"
                 multiswipe.bottom="deselect.deslect"
-                flick.bottom="zoom_to_100pct.zoom 100%"
+                flick.bottom="add_new_paint_layer.add layer"
                 swipe.top="edit_cut.cut"
-                multiswipe.top="tool:KisToolSelectRectangular.select"
+                multiswipe.top="tool:KisToolSelectOutline.select"
                 flick.top="edit_copy.copy"
                 swipe.left="tool:KritaShape/KisToolBrush.brush"
                 flick.left="file_save_as.save as">

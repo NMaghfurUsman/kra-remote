@@ -180,6 +180,7 @@ body {
 
 .col {
   font-size: 14pt;
+  scale: 1.2;
 }
 
 .tap, .swipe, .col div {
