@@ -287,8 +287,21 @@
                 </div>
         </div>
         <div v-if="!connected" id="connection"
-        v-touch:tap="promptConnection">
-            <p>Tap anywhere to connect</p>
+            v-touch:tap="promptConnection">
+            <div>
+                <p>Tap anywhere to connect</p>
+                <div>
+                    <p style="text-decoration: underline; font-weight: normal; text-transform: uppercase; font-size: 12pt">Legend</p>
+                    <p>
+                        <span class="tap">tap or drag</span><br>
+                        <span class="multitap">multi-touch tap or drag</span><br>
+                        <span class="swipe">swipe</span><br>
+                        <span class="multiswipe">multi-touch swipe</span><br>
+                        <span class="flick">flick</span><br>
+                        <span class="multiflick">multi-touch flick</span>
+                    </p>
+                </div>
+            </div>
         </div>
     </div>
 </body>

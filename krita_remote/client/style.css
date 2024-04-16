@@ -15,18 +15,18 @@
   #connection, #pad, .active-area {
     background-color: #fbf7ef;
   }
-  #connection {
-    color:#2b90d8;
-  }
   .activated {
     background-color: #f1e9d2   ;
+  }
+  .col {
+    filter: drop-shadow(0 0 8px #8faaab);
   }
 }
 @media (prefers-color-scheme: dark) {
 
   .active-area {
-    color: #268bd2;
-    border-color: #5b7279 ;
+    color: #2b90d8;
+    border-color: #2b90d8;
     box-shadow: inset 1px 1px 0 0 #073642
   }
 
@@ -36,11 +36,11 @@
   #connection, #pad, .active-area {
     background-color: #002d38;
   }
-  #connection {
-    color: #268bd2;
-  }
   .activated {
     background-color: #093946;
+  }
+  .col {
+    filter: drop-shadow(0 0 8px #2b90d8);
   }
 }
 
@@ -51,16 +51,26 @@ body {
   overscroll-behavior: contain;
 }
 
-#connection {
-  font-weight: bold;
-  font-size: 18pt;
-}
 
-.mid-c { grid-column: 2;}
-.top-r { grid-row: 1}
-.mid-r { grid-row: 2}
-.bot-r { grid-row: 3}
-.col   { grid-row: 1/4;}
+.mid-c {
+  border-width: 0px;
+  grid-column: 2;
+}
+.top-r {
+  border-width: 0px 0px 1px 0px;
+  grid-row: 1
+}
+.mid-r {
+  grid-row: 2
+}
+.bot-r {
+  border-width: 1px 0px 0px 0px;
+  grid-row: 3
+}
+.col   {
+  border-width: 1px 1px 0px 1px;
+  grid-row: 1/4;
+}
 
 #pad {
   position: fixed;
@@ -73,6 +83,9 @@ body {
 }
 
 #connection {
+  color: #2b90d8;
+  font-weight: bold;
+  font-size: 18pt;
   width: 100vw;
   height: 100vh;
   opacity: 0.9;
@@ -81,6 +94,14 @@ body {
   justify-content: center;
   align-items: center;
   display:flex;
+}
+
+#connection div {
+  padding-block: 1em;
+}
+
+#connection div div {
+  text-align: center;
 }
 
 .north {
@@ -107,7 +128,6 @@ body {
 .active-area {
   user-select: none;
   touch-action: none;
-  border-width: 1px;
   border-style: solid;
   display: grid;
   align-items: center;
@@ -145,8 +165,8 @@ body {
   filter: drop-shadow(0 0 5px);
 }
 
-.flick, .swipe, .tap {
-  scale: 1.2;
+.swipe, .tap {
+  font-size: 16pt;
 }
 
 .origin {
@@ -154,14 +174,27 @@ body {
 }
 
 .multitap, .multiswipe, .multiflick {
+  font-size: 12pt;
   font-style: oblique;
 }
 
 .col {
-  scale: 1.1;
-  filter: drop-shadow(0 0 8px);
+  font-size: 14pt;
 }
 
-.tap, .swipe {
+.tap, .swipe, .col div {
   font-weight: bold;
+}
+
+.swipe, .multiswipe {
+  color: #259d94;
+}
+
+.flick, .multiflick {
+  font-size: 12pt;
+  color: #7d80d1;
+}
+
+.multiflick {
+  font-weight: normal;
 }
