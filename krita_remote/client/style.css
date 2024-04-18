@@ -126,12 +126,8 @@ body {
 }
 
 .active-area {
-  user-select: none;
-  touch-action: none;
   border-style: solid;
   display: grid;
-  align-items: center;
-  justify-items: center;
 }
 
 .active-area div div {
@@ -139,13 +135,11 @@ body {
   user-select: none;
   touch-action: none;
   text-wrap: nowrap;
-  display:flex;
+  text-align: center;
 }
 
 .active-area div {
-  user-select: none;
-  width: 0px;
-  justify-content: center;
+  align-self: center;
 }
 
 .active-area .west, .col .origin {
@@ -157,8 +151,8 @@ body {
 }
 
 .grid9by9 {
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-template-rows: 1fr 1fr 1fr
+  grid-template-columns: 33% 33% 33%;
+  grid-template-rows: 33% 33% 33%;
 }
 
 .tap, .swipe, .col .origin {
