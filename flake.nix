@@ -30,13 +30,13 @@
               modules = [
                 {
                   # https://devenv.sh/reference/options/
-                  packages = [ pkgs.krita pkgs.python3Packages.pyqt5];
+                  packages = [ pkgs.krita pkgs.python3Packages.pyqt5 pkgs.python3Packages.pyqt5-stubs pkgs.python3Packages.pyqt5-sip];
                   processes = {
-                        client.exec = "python -m http.server -d ./client";
+                        client.exec = "python -m http.server -d ./krita_remote/client";
                   };
+                  env.PYTHONPATH = "${pkgs.python3Packages.pyqt5}/lib/python3.11/site-packages/";
                   enterShell = ''
                     echo "Dev Shell for Krita Remote"
-                    export PYTHONPATH="${pkgs.python3Packages.pyqt5}/lib/python3.11/site-packages/"
                     echo "\$PYTHONPATH=$PYTHONPATH"
                   '';
 
