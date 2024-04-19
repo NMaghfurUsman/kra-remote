@@ -237,6 +237,7 @@ var vueTouchEvents = {
             removeTouchClass(this);
 
             $this.initialTouchStarted = $this.touchMoved = false;
+            $this.touchUpgraded = false;
             $this.startX = $this.startY = 0;
         }
 
@@ -268,6 +269,13 @@ var vueTouchEvents = {
             }
 
             // trigger `end` event when touch stopped
+            if ($this.pressTimer) {
+                clearTimeout($this.pressTimer);
+                $this.pressTimer = null;
+                console.log("cancel pressTimer")
+                triggerEvent(event, this, 'press');
+            }
+
             triggerEvent(event, this, $this.touchUpgraded ? 'multirelease' : 'release');
 
             if (!$this.touchUpgraded) {
