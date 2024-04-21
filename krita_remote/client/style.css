@@ -51,7 +51,6 @@ body {
   overscroll-behavior: contain;
 }
 
-
 .mid-c {
   border-width: 0px;
   grid-column: 2;
@@ -78,8 +77,8 @@ body {
   width: 100vw;
   height:100vh;
   display: grid;
-  grid-template-columns: 0.15fr 0.7fr 0.15fr;
-  grid-template-rows: 0.25fr 0.5fr 0.25fr;
+  grid-template-columns: 10% 80% 10%;
+  grid-template-rows: 33% 33% 33%;
 }
 
 #connection {
@@ -126,8 +125,11 @@ body {
 }
 
 .active-area {
+  user-select: none;
+  touch-action: none;
   border-style: solid;
   display: grid;
+  justify-content: center;
 }
 
 .active-area div div {
@@ -139,6 +141,8 @@ body {
 }
 
 .active-area div {
+  user-select: none;
+  touch-action: none;
   align-self: center;
 }
 
