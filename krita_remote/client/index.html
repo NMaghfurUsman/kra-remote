@@ -8,7 +8,20 @@
         import { createApp } from 'https://unpkg.com/vue@3.4.21/dist/vue.esm-browser.js'
         import vue3TouchEvents from "./vue3-touch-events.js"
 
-        const dummy_connection = false
+        var dummy_connection = false
+
+        const get_addr_from_hash = () => {
+            try {
+                return new URL(location.hash.substring(1))
+            } catch (e) {
+                if (location.hash.substring(1) == "dummy") {
+                    dummy_connection = true
+                    return "ws://dummy"
+                } else {
+                    return "ws://"
+                }
+            }
+        }
 
         const send = (socket, msg) => {
             if (!dummy_connection) {
@@ -17,15 +30,6 @@
                 console.log(msg)
             }
         }
-
-        const get_addr_from_hash = () => {
-            try {
-                return new URL(location.hash.substring(1))
-            } catch (e) {
-                return "ws://localhost"
-            }
-        }
-
         const build_active_area = (area) => {
 
             // Tap/Multitap
@@ -143,10 +147,10 @@
         const app = createApp({
             data() {
                 return {
+                    address: get_addr_from_hash(),
                     dummy_connection: dummy_connection,
                     connected: false,
                     socket: null,
-                    address: get_addr_from_hash(),
                     events: [],
                     drag_started: false,
                     drag_origin_y: 0,
@@ -172,6 +176,7 @@
                         this.connected = true;
                         document.body.requestFullscreen()
                     } else {
+                        this.address = get_addr_from_hash()
                         this.connect()
                     }
 
