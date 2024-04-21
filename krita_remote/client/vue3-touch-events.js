@@ -79,6 +79,7 @@ var vueTouchEvents = {
                 {
                     cancelPressTimer($this);
                     $this.touchUpgraded = true;
+                    $this.initialTouchID = event.touches[0].identifier
                     $this.touchUpgradedStartX = touchX(event);
                     $this.touchUpgradedStartY = touchY(event);
                     triggerEvent(event, this, 'multipress');
@@ -89,6 +90,10 @@ var vueTouchEvents = {
             addTouchClass(this);
 
             $this.initialTouchStarted = true; // always true while the element is being PRESSED by the first touch event
+            $this.dropEnd = false; // true if future touchmove and touchend events should be ignored
+            // the last valid X,Y values to ingest in future touch events
+            $this.trueEndX = 0;
+            $this.trueEndY = 0;
 
             $this.touchMoved = false; // true only when the element is PRESSED and DRAGGED a bit
             $this.swipeOutBounded = false;
@@ -142,6 +147,10 @@ var vueTouchEvents = {
         function touchMoveEvent(event) {
             var $this = this.$$touchObj;
 			
+            if ($this.dropEnd) {
+                return;
+            }
+
 			var curX = touchX(event);
 			var curY = touchY(event);
 
@@ -258,8 +267,21 @@ var vueTouchEvents = {
 
             // ignore residual touches from multitouch events
             if (isTouchEvent) {
-                if (event.touches.length == 1 || (!$this.initialTouchStarted && $this.touchUpgraded)) {
+                if (event.touches.length >= 1 || (!$this.initialTouchStarted && $this.touchUpgraded)) {
+                    if (event.touches[0].identifier != $this.initialTouchID) {
+                        // The touch events triggered by the first finger is used for gesture recognition,
+                        // so once it has triggered its last touchend event, any future touchmove and touchend events
+                        // triggered by the other fingers (or finger) should be ignored.
+                        $this.dropEnd = true
+                        $this.trueEndX = event.clientX
+                        $this.trueEndY = event.clientY
+                    }
                     return;
+                }
+                if ($this.dropEnd && event.touches.length == 0) {
+                    // Since this is the last touchend event, we can finally make use of the last valid touch coordinates
+                    $this.currentX = $this.trueEndX
+                    $this.currentY = $this.trueEndY
                 }
             }
 
