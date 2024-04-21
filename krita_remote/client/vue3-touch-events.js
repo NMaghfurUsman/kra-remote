@@ -19,6 +19,19 @@ function touchY(event) {
     return event.touches[0].clientY;
 }
 
+function isOrthogonal(x, y) {
+    const sqrt = Math.sqrt(x*x+y*y)
+    const normX = Math.abs(x/sqrt)
+    const normY = Math.abs(y/sqrt)
+    const uV = 0.7071
+    const dotProduct = normX*uV + normY*uV
+    if (dotProduct > 0.98) {
+        return false
+    } else {
+        return true
+    }
+}
+
 var isPassiveSupported = (function() {
     var supportsPassive = false;
     try {
@@ -36,9 +49,9 @@ var vueTouchEvents = {
     install: function (app, constructorOptions) {
 		
         var globalOptions = Object.assign({}, {
-            disableClick: false,
+            disableClick: true,
             tapTolerance: 10,  // px
-            swipeTolerance: 30,  // px
+            swipeTolerance: 40,  // px
             touchHoldTolerance: 400,  // ms
             longTapTimeInterval: 400,  // ms
             touchUpgradeWindow: 100, // ms
@@ -138,6 +151,8 @@ var vueTouchEvents = {
             $this.currentY = curY;
 
             if (!$this.touchUpgraded) {
+                const absX = Math.abs($this.startX - $this.currentX);
+                const absY = Math.abs($this.startY - $this.currentY);
                 if (!$this.touchMoved) {
                     var tapTolerance = $this.options.tapTolerance;
 
@@ -153,19 +168,15 @@ var vueTouchEvents = {
 
                 // performance: only process swipe events if `swipe.*` event is registered on this element
                 } else if (($this.hasSwipe || $this.hasFlick) && !$this.swipeOutBounded) {
-                    var swipeOutBounded = $this.options.swipeTolerance;
+                    $this.swipeOutBounded = !isOrthogonal(absX,absY)
 
-                    $this.swipeOutBounded = Math.abs($this.startX - $this.currentX) > swipeOutBounded &&
-                        Math.abs($this.startY - $this.currentY) > swipeOutBounded;
                 }
 
                 if ($this.touchMoved && ($this.hasFlick || $this.hasSwipe)) {
-                    var absX = Math.abs($this.currentX - $this.startX);
                     if (absX > $this.largestXDst) {
                         $this.largestXDst = absX;
                         $this.farthestX = curX;
                     }
-                    var absY = Math.abs($this.currentY - $this.startY);
                     if (absY > $this.largestYDst) {
                         $this.largestYDst = absY;
                         $this.farthestY = curY;
@@ -198,6 +209,9 @@ var vueTouchEvents = {
                     }
                 }
             } else {
+                var absX = Math.abs($this.currentX - $this.touchUpgradedStartX);
+                var absY = Math.abs($this.currentY - $this.touchUpgradedStartY);
+
                 if (!$this.touchMoved) {
                     var tapTolerance = $this.options.tapTolerance;
 
@@ -210,18 +224,14 @@ var vueTouchEvents = {
 
                 }
                 else if ($this.hasMultiSwipe && !$this.swipeOutBounded) {
-                    var swipeOutBounded = $this.options.swipeTolerance;
-                    $this.swipeOutBounded = Math.abs($this.touchUpgradedStartX - $this.currentX) > swipeOutBounded &&
-                        Math.abs($this.touchUpgradedStartY - $this.currentY) > swipeOutBounded;
+                    $this.swipeOutBounded = !isOrthogonal(absX,absY)
                 }
 
                 if ($this.touchMoved && $this.hasMultiSwipe) {
-                    var absX = Math.abs($this.currentX - $this.touchUpgradedStartX);
                     if (absX > $this.largestXDst) {
                         $this.largestXDst = absX;
                         $this.farthestX = curX;
                     }
-                    var absY = Math.abs($this.currentY - $this.touchUpgradedStartY);
                     if (absY > $this.largestYDst) {
                         $this.largestYDst = absY;
                         $this.farthestY = curY;
@@ -272,7 +282,6 @@ var vueTouchEvents = {
             if ($this.pressTimer) {
                 clearTimeout($this.pressTimer);
                 $this.pressTimer = null;
-                console.log("cancel pressTimer")
                 triggerEvent(event, this, 'press');
             }
 
@@ -298,7 +307,7 @@ var vueTouchEvents = {
 
 
                 // performance: only process swipe events if `swipe.*` event is registered on this element
-                } else if (($this.hasSwipe || $this.hasFlick) && !$this.swipeOutBounded) {
+                } else if ($this.hasSwipe || $this.hasFlick) {
 
                     var curDstX = Math.abs($this.currentX - $this.startX);
                     var curDstY = Math.abs($this.currentY - $this.startY);
@@ -312,7 +321,7 @@ var vueTouchEvents = {
                         distanceY = Math.abs($this.startY - $this.farthestY),
                         distanceX = Math.abs($this.startX - $this.farthestX);
 
-                    if (distanceY > swipeOutBounded || distanceX > swipeOutBounded) {
+                    if (isOrthogonal(distanceX, distanceY)) {
 
                         if (distanceY > distanceX) {
                             direction = $this.startY > $this.farthestY ? 'top' : 'bottom';
@@ -336,14 +345,14 @@ var vueTouchEvents = {
             } else {
                 if (hasEvent(this, 'multitap') && !$this.touchMoved) {
                     triggerEvent(event, this, 'multitap');
-                } else if ($this.hasMultiSwipe && !$this.swipeOutBounded && $this.touchMoved) {
+                } else if (($this.hasMultiSwipe || $this.hasMultiFlick)&& $this.touchMoved) {
 
                     var swipeOutBounded = $this.options.swipeTolerance,
                         direction,
                         distanceY = Math.abs($this.touchUpgradedStartY - $this.farthestY),
                         distanceX = Math.abs($this.touchUpgradedStartX - $this.farthestX);
 
-                    if (distanceY > swipeOutBounded || distanceX > swipeOutBounded) {
+                    if (isOrthogonal(distanceX, distanceY)) {
                         if (distanceY > distanceX) {
                             direction = $this.startY > $this.farthestY ? 'top' : 'bottom';
                         } else {
