@@ -4,7 +4,7 @@ Krita Remote is a Python extension that allows Krita to be remotely controlled o
 
 ![Krita Remote webapp and Krita Remote docker](docker_screenshot.png)
 
-This extension also supplies a webapp to use on your phone. By performing directional flick gestures on the webapp, you can remotely control Krita via the Krita Remote extension, and trigger actions such as Undo, Copy/Paste, switching to Brush, Eraser, resizing, even keyboard keys like Shift, Ctrl can be triggered. etc. The webapp is designed with large target areas, so that very specific gestures can be performed accurately without your direct line-of-sight to the touchscreen.
+This extension also supplies a webapp to use on your phone. By performing directional flick gestures on the webapp, you can remotely control Krita via the Krita Remote extension, and trigger actions such as Undo, Copy/Paste, switching to Brush, Eraser, resizing brush, etc. Even keyboard keys like Shift, Ctrl can be triggered. The webapp is designed with large target areas, so that very specific gestures can be performed accurately without your direct line-of-sight to the touchscreen.
 
 ## Installation
 
@@ -12,11 +12,13 @@ This extension also supplies a webapp to use on your phone. By performing direct
 
 2. Go to *Tools* -> *Scripts* -> *Import Python Plugin from Web*
 
-3. A dialog will pop up. Copy this link into the input https://github.com/NMaghfurUsman/kra-remote/archive/refs/heads/main.zip
+3. A dialog will pop up. Copy this link into the input https://github.com/NMaghfurUsman/kra-remote/releases/download/v0.1/kra-remote-v0.1.zip
 
    Press OK.
 
 4. Restart Krita.
+
+5. Enable the docker in *Settings* -> *Dockers* -> *Krita Remote*
 
 ## Usage
 
