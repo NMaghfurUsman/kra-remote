@@ -33,7 +33,7 @@ class DockFrame(QFrame):
 
     @pyqtSlot()
     def showQRDialog(self):
-        self._qr_dialog = QRDialog(self.parentWidget()._extension.server.address, self.parentWidget()._extension.connection.address)
+        self._qr_dialog = QRDialog(self.parentWidget()._extension.server.address, self.parentWidget()._extension.connection.address())
         self._qr_dialog.show()
         
     def onClientConnected(self):
@@ -51,7 +51,7 @@ class ConnectButton(QPushButton):
     def __init__(self, c: WSConnection, parent: DockFrame):
         super().__init__(parent)
         self.setText("Connect")
-        if (c.address):
+        if (c.address()):
             self.setEnabled(False)
         else:
             self.setEnabled(True)
@@ -72,7 +72,7 @@ class DisconnectButton(QPushButton):
     def __init__(self, c: WSConnection, parent: DockFrame):
         super().__init__(parent)
         self.setText("Disconnect")
-        if (c.address):
+        if (c.address()):
             self.setEnabled(True)
         else:
             self.setEnabled(False)

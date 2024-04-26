@@ -3,9 +3,10 @@ from typing import Protocol, Optional
 from random import randint
 from socket import gethostbyname, gethostname
 from PyQt5.QtCore import QObject, pyqtSlot, pyqtSignal
-from PyQt5.QtWebSockets import QWebSocketServer, QWebSocket
 from PyQt5.QtNetwork import QHostAddress
 from PyQt5.QtCore import pyqtProperty
+from ..websockets.src.websockets.sync.server import serve, ServerConnection, WebSocketServer
+from threading import Thread
 
 class ServerListener(Protocol):
     
@@ -36,51 +37,20 @@ class ClientListener(Protocol):
     def onClientDisconnected(self) -> None:
         pass
 
-class Socket(QObject):
-    
-    messageReceived = pyqtSignal(str)
-    disconnected = pyqtSignal()
-    connected = pyqtSignal()
-    ws: QWebSocket
-
-    def sendMessage(self, msg: str) -> None:
-        self.ws.sendTextMessage(msg)
-        pass
-
-    @pyqtSlot(str)
-    def onMessage(self, msg: str):
-        self.messageReceived.emit(msg)
-        
-    @pyqtSlot()
-    def onDisconnect(self):
-        pass
-    
-    def __init__(self, ws: QWebSocket):
-        super().__init__()
-        ws.textMessageReceived.connect(self.onMessage)
-        ws.connected.connect(self.connected.emit)
-        ws.disconnected.connect(self.disconnected.emit)
-        self.ws: QWebSocket = ws
-        
-    def disconnectClient(self):
-        self.ws.close()
-        
-class SocketServer(QWebSocketServer):
-    def __init__(self):
-        super().__init__("krita_remote", QWebSocketServer.SslMode.NonSecureMode)
-
 # Wrangles the websocket server and websocket connection
 class WSConnection(QObject):
     
-    server: SocketServer
-    client: Optional[Socket] = None
+    port: Optional[int] = None
+    server: Optional[WebSocketServer] = None
+    server_thread: Optional[Thread] = None
+    client: bool = False
+    connection: Optional[ServerConnection] = None
     
     serverListening = pyqtSignal(str)
     serverStopped = pyqtSignal()
     
     clientConnected = pyqtSignal()
     clientDisconnected = pyqtSignal()
-    clientRejected = pyqtSignal()
     clientMessageReceived = pyqtSignal(str)
 
     action = pyqtSignal(str)
@@ -90,29 +60,8 @@ class WSConnection(QObject):
     
     def __init__(self):
         super().__init__()
-        self.server = SocketServer()
-        self.server.newConnection.connect(self.onNewConnection)
-        self.server.closed.connect(self.serverStopped.emit)
-        
-        self.clientDisconnected.connect(self.onClientDisconnected)
+        self.clientMessageReceived.connect(self.onMessage)
 
-    @pyqtSlot(bool)
-    def onServerChange(self, listening: bool):
-        print("Listening: {}".format(listening))
-
-    @pyqtSlot()
-    def onNewConnection(self):
-        socket = Socket(self.server.nextPendingConnection())
-        if (self.client != None): # reject new connections if we already have a client
-            socket.disconnectClient()
-            self.clientRejected.emit()
-        else:
-            self.client = socket
-            self.clientConnected.emit()
-            self.client.disconnected.connect(self.clientDisconnected.emit)
-            self.client.messageReceived.connect(self.onMessage)
-            self.client.messageReceived.connect(self.clientMessageReceived.emit)
-            
     @pyqtSlot(str)
     def onMessage(self, msg: str):
         if (msg.startswith("action:tool:")):
@@ -130,44 +79,59 @@ class WSConnection(QObject):
 
     @pyqtSlot()
     def onClientDisconnected(self):
-        self.client = None
+        self.client = False
 
     @pyqtSlot()
     def startServer(self):
-        if (self.server): 
-            if (self.server.isListening()): return
-        if (not self.server): self.server = SocketServer()
-        
         ip: QHostAddress = QHostAddress(gethostbyname(gethostname()))
-        port: int = randint(9999,pow(2,16))
+        port = self.port or randint(9999,pow(2,16))
+        self.port = port
 
-        if (self.server.listen(ip, port)):
+        def handler(ws: ServerConnection) -> None:
+            self.client = True
+            self.connection = ws
+            self.clientConnected.emit()
+            for msg in ws:
+                self.clientMessageReceived.emit(msg)
+            self.clientDisconnected.emit()
+            self.client = False
+
+        self.server = serve(handler, ip.toString(), self.port)
+        self.server_thread = Thread(target=self.server.serve_forever)
+        self.server_thread.start()
+
+        if (self.server_thread.is_alive()):
             self.serverListening.emit(ip.toString()+":"+str(port))
         else:
             self.serverStopped.emit()
 
-    @pyqtProperty(str)
     def address(self) -> str | None:
-        if (self.server and self.server.isListening()):
-            return self.server.serverUrl().toString()
+        if (self.server_thread and self.server_thread.is_alive()):
+            return "ws://{}:{}/".format(gethostbyname(gethostname()), self.port)
         else:
             return None
 
     @pyqtSlot()
     def stopServer(self):
-        if (self.server.isListening()):
-            self.server.close()
-        if (self.client != None):
-            self.client.disconnectClient()
-            self.client = None
+        if (self.server_thread and self.server_thread.is_alive()):
+            assert self.server
+            assert self.client
+            assert self.connection
+            self.server.shutdown()
+            self.connection.close()
+            self.serverStopped.emit()
+            self.server = None
             
     @pyqtProperty(bool)
     def connected(self) -> bool:
-        return self.client != None
+        return self.client
     
     @pyqtProperty(bool)
     def listening(self) -> bool:
-        return self.server.isListening()
+        if (self.server_thread):
+            return self.server_thread.is_alive()
+        else:
+            return False
     
     def connectClientSignals(self, listener: ClientListener) -> None:
         self.clientMessageReceived.connect(listener.onClientMessage)
@@ -177,12 +141,4 @@ class WSConnection(QObject):
     def connectServerSignals(self, listener: ServerListener) -> None:
         self.serverListening.connect(listener.onServerListening)
         self.serverStopped.connect(listener.onServerStopped)
-        
-    @pyqtSlot(str)
-    def send(self, msg: str) -> bool:
-        if self.client:
-            self.client.sendMessage(msg)
-            return True
-        else:
-            return False
         

@@ -22,5 +22,3 @@ class KritaRemoteDockWidget(DockWidget):
     def canvasChanged(self, canvas: Any):
         if canvas:
             if (canvas.view() and canvas.view().document()):
-                print("Canvas changed. visible?: {}".format((canvas.view().visible)))
-                self._extension.connection.send("canvas changed to {}".format(canvas.view().document().name()))

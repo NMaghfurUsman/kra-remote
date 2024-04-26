@@ -1,8 +1,8 @@
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
-import threading
 from socket import gethostname, gethostbyname
 from random import randint
 from ..api_krita import Krita
+from typing import Optional
 
 INDEX_DIR = Krita.instance.getAppDataLocation() + "/pykrita/krita_remote/client"
 
@@ -12,9 +12,11 @@ class Handler(SimpleHTTPRequestHandler):
 
 class HTTPServer(ThreadingHTTPServer):
     address: str
-    def __init__(self):
-        ip = gethostbyname(gethostname())
-        port = randint(9999,pow(2,16))
+    port: Optional[int] = None
+    def __init__(self, port = None):
+        ip = gethostbyname(gethostname().split(".")[-1])
+        port = port or randint(9999,pow(2,16))
+        self.port = port
         super().__init__((ip, port), Handler)
         self.address = "http://{}:{}".format(ip, port)
         
