@@ -28,6 +28,9 @@ class DockFrame(QFrame):
         
         connection.connectClientSignals(self)
         
+        self._clear_button = ClearButton(self, target=self._client_log)
+        main_layout.addWidget(self._clear_button)
+
     @pyqtSlot()
     def showQRDialog(self):
         self._qr_dialog = QRDialog(self.parentWidget()._extension.server.address, self.parentWidget()._extension.connection.address)
@@ -84,3 +87,9 @@ class DisconnectButton(QPushButton):
 
     def onClientMessage(self):
         pass
+
+class ClearButton(QPushButton):
+    def __init__(self, parent, target):
+        super().__init__(parent)
+        self.setText("Clear")
+        self.clicked.connect(target.clear)

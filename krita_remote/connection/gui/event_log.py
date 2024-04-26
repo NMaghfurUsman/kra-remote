@@ -8,6 +8,7 @@ class EventLog(QTextEdit):
 
     def __init__(self, c: WSConnection, parent: QWidget):
         super().__init__(parent)
+        self.setReadOnly(True)
         c.connectClientSignals(self)
         c.connectServerSignals(self)
         self._connection = c
