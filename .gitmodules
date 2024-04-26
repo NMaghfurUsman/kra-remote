@@ -1,0 +1,3 @@
+[submodule "krita_remote/websockets"]
+	path = krita_remote/websockets
+	url = https://github.com/python-websockets/websockets

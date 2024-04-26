@@ -22,7 +22,7 @@
       devShells = forEachSystem
         (system:
           let
-            pkgs = nixpkgs.legacyPackages.${system}.extend (import ./pyqt5-qtwebsockets.nix);
+            pkgs = nixpkgs.legacyPackages.${system};
           in
           {
             default = devenv.lib.mkShell {
@@ -30,7 +30,7 @@
               modules = [
                 {
                   # https://devenv.sh/reference/options/
-                  packages = [ pkgs.krita pkgs.python3Packages.pyqt5 pkgs.python3Packages.pyqt5-stubs pkgs.python3Packages.pyqt5-sip];
+                  packages = [ pkgs.python3Packages.pyqt5 pkgs.python3Packages.pyqt5-stubs pkgs.python3Packages.pyqt5-sip];
                   processes = {
                         client.exec = "python -m http.server -d ./krita_remote/client";
                   };

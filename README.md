@@ -1,27 +1,10 @@
 # Krita Remote
 
-Krita Remote is a Python extension that allows Krita to be remotely controlled over a WebSockets connection. It does this using PyQt5's QtWebSockets module.
+Krita Remote is a Python extension that allows Krita to be remotely controlled over a WebSockets connection.
 
 ![Krita Remote webapp and Krita Remote docker](docker_screenshot.png)
 
-However, the official Krita download does not come with QtWebSockets. Linux users may be able to install the Qt5 QtWebSockts package on their distro: If you are using the `krita` package that is provided by your distro's package repository, then you may also install `qt5-websockets` (on Arch) or `python3-pyqt5.qtwebsockets` (on Debian/Ubuntu) to get QtWebSockets.
-
 This extension also supplies a webapp to use on your phone. By performing directional flick gestures on the webapp, you can remotely control Krita via the Krita Remote extension, and trigger actions such as Undo, Copy/Paste, switching to Brush, Eraser, resizing, even keyboard keys like Shift, Ctrl can be triggered. etc. The webapp is designed with large target areas, so that very specific gestures can be performed accurately without your direct line-of-sight to the touchscreen.
-
-## System Requirements
-
-  - QtWebSockets
-
-    | Krita Platform             | Can I use this? |
-    |----------------------------|-----------------|
-    | Windows                    | ❌               |
-    | Mac                        | ❌               |
-    | Android                    | ❌               |
-    | Linux flatpak              | ❌               |
-    | Linux appimage             | ❌               |
-    | Linux distribution package | ❔*              |
-
-    *Krita users on Arch Linux or Debian may install the relevant package on their distro. (either [python3-pyqt5.qtwebsockets](https://packages.debian.org/stable/python3-pyqt5.qtwebsockets) or [qt5-websockets](https://archlinux.org/packages/extra/x86_64/qt5-websockets/)).
 
 ## Installation
 

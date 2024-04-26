@@ -26,7 +26,7 @@ class EventLog(QTextEdit):
         self.append("Client rejected")
 
     def onServerListening(self, address: str):
-        self.append("Server listening on {}".format(self._connection.address))
+        self.append("Server listening on {}".format(self._connection.address()))
 
     def onServerStopped(self):
         self.append("Server stopped")
