@@ -5,11 +5,10 @@ from .connection import WSConnection
 from .api_krita import Krita
 from .api_krita.enums import Tool
 from PyQt5.QtCore import pyqtProperty, pyqtSlot, QEvent, Qt, QObject
-from PyQt5.QtWidgets import QWidget, QApplication
-from PyQt5.QtGui import QCursor,QKeyEvent
+from PyQt5.QtWidgets import QApplication
+from PyQt5.QtGui import QKeyEvent
 from .connection.http_server import HTTPServer
 from threading import Thread
-from .connection.gui.qr_window import QRDialog
 
 class KritaRemoteExtension(Extension):
 
@@ -27,14 +26,19 @@ class KritaRemoteExtension(Extension):
         self._connection.press.connect(self.press)
         self._connection.release.connect(self.release)
         self._connection.tool.connect(self.tool)
+        self._connection.serverListening.connect(self.startHTTPServer)
 
         self._server = HTTPServer()
         self._server_thread = Thread(target=self._server.serve_forever)
         self._server_thread.daemon = True
-        self._server_thread.start()
 
     def createActions(self, window):
         pass
+
+    @pyqtSlot(str)
+    def startHTTPServer(self, _msg: str):
+        if not self._server_thread.is_alive():
+            self._server_thread.start
 
     @pyqtProperty(WSConnection)
     def connection(self) -> WSConnection:
