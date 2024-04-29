@@ -25,7 +25,7 @@ function isOrthogonal(x, y) {
     const normY = Math.abs(y/sqrt)
     const uV = 0.7071
     const dotProduct = normX*uV + normY*uV
-    if (dotProduct > 0.98) {
+    if (dotProduct > 0.95) {
         return false
     } else {
         return true
@@ -47,17 +47,17 @@ var isPassiveSupported = (function() {
 
 var vueTouchEvents = {
     install: function (app, constructorOptions) {
-		
+
         var globalOptions = Object.assign({}, {
             disableClick: true,
             tapTolerance: 10,  // px
             swipeTolerance: 40,  // px
             touchHoldTolerance: 400,  // ms
             longTapTimeInterval: 400,  // ms
-            touchUpgradeWindow: 100, // ms
+            touchUpgradeWindow: 50, // ms
             touchClass: '',
-			dragFrequency: 100, // ms
-			rollOverFrequency: 100, // ms
+                        dragFrequency: 100, // ms
+                        rollOverFrequency: 100, // ms
         }, constructorOptions);
 
         function touchStartEvent(event) {
@@ -96,7 +96,6 @@ var vueTouchEvents = {
             $this.trueEndY = 0;
 
             $this.touchMoved = false; // true only when the element is PRESSED and DRAGGED a bit
-            $this.swipeOutBounded = false;
             $this.touchUpgraded = false; // single touch -> multitouch
 
             $this.startX = touchX(event);
@@ -114,30 +113,41 @@ var vueTouchEvents = {
             $this.touchUpgradedStartY = null;
 
             $this.touchStartTime = event.timeStamp;
-			
-			// performance: only process swipe events if `swipe.*` event is registered on this element
-			$this.hasSwipe = hasEvent(this, 'swipe')
-				|| hasEvent(this, 'swipe.left') || hasEvent(this, 'swipe.right')
-				|| hasEvent(this, 'swipe.top') || hasEvent(this, 'swipe.bottom');
+            // performance: only process swipe events if `swipe.*` event is registered on this element
+            $this.hasSwipe =
+                hasEvent(this, 'swipe.left') || hasEvent(this, 'swipe.right')
+                || hasEvent(this, 'swipe.top') || hasEvent(this, 'swipe.bottom')
+                || hasEvent(this, 'swipe.topleft') || hasEvent(this, 'swipe.topright')
+                || hasEvent(this, 'swipe.bottomleft') || hasEvent(this, 'swipe.bottomright');
 
-            $this.hasMultiSwipe = hasEvent(this, 'multiswipe')
-				|| hasEvent(this, 'multiswipe.left') || hasEvent(this, 'multiswipe.right')
-				|| hasEvent(this, 'multiswipe.top') || hasEvent(this, 'multiswipe.bottom');
+            $this.hasMultiSwipe =
+                hasEvent(this, 'multiswipe.left') || hasEvent(this, 'multiswipe.right')
+                || hasEvent(this, 'multiswipe.top') || hasEvent(this, 'multiswipe.bottom')
+                || hasEvent(this, 'multiswipe.topleft') || hasEvent(this, 'multiswipe.topright')
+                || hasEvent(this, 'multiswipe.bottomleft') || hasEvent(this, 'multiswipe.bottomright');
 
             $this.hasFlick =
-				hasEvent(this, 'flick.left') || hasEvent(this, 'flick.right')
-				|| hasEvent(this, 'flick.top') || hasEvent(this, 'flick.bottom');
+                hasEvent(this, 'flick.left') || hasEvent(this, 'flick.right')
+                || hasEvent(this, 'flick.top') || hasEvent(this, 'flick.bottom')
+                || hasEvent(this, 'flick.topleft') || hasEvent(this, 'flick.topright')
+                || hasEvent(this, 'flick.bottomleft') || hasEvent(this, 'flick.bottomright');
 
-			// performance: only start hold timer if the `hold` event is registered on this element
-			if (hasEvent(this, 'hold')){
-				
-				// Trigger touchhold event after `touchHoldTolerance` MS
-				$this.touchHoldTimer = setTimeout(function() {
-					$this.touchHoldTimer = null;
-					triggerEvent(event, $el, 'hold');
-				}, $this.options.touchHoldTolerance);
-			}
-			
+            $this.hasMultiFlick =
+                hasEvent(this, 'multiflick.left') || hasEvent(this, 'multiflick.right')
+                || hasEvent(this, 'multiflick.top') || hasEvent(this, 'multiflick.bottom')
+                || hasEvent(this, 'multiflick.topleft') || hasEvent(this, 'multiflick.topright')
+                || hasEvent(this, 'multiflick.bottomleft') || hasEvent(this, 'multiflick.bottomright');
+
+            // performance: only start hold timer if the `hold` event is registered on this element
+            if (hasEvent(this, 'hold')){
+
+                // Trigger touchhold event after `touchHoldTolerance` MS
+                $this.touchHoldTimer = setTimeout(function() {
+                    $this.touchHoldTimer = null;
+                    triggerEvent(event, $el, 'hold');
+                }, $this.options.touchHoldTolerance);
+            }
+
             $this.pressTimer = setTimeout(function() {
                 $this.pressTimer = null;
                 triggerEvent(event, $el, 'press');
@@ -146,16 +156,16 @@ var vueTouchEvents = {
 
         function touchMoveEvent(event) {
             var $this = this.$$touchObj;
-			
+
             if ($this.dropEnd) {
                 return;
             }
 
-			var curX = touchX(event);
-			var curY = touchY(event);
+                        var curX = touchX(event);
+                        var curY = touchY(event);
 
-			var movedAgain = ($this.currentX != curX) || ($this.currentY != curY);
-			
+                        var movedAgain = ($this.currentX != curX) || ($this.currentY != curY);
+
             $this.currentX = curX;
             $this.currentY = curY;
 
@@ -176,9 +186,6 @@ var vueTouchEvents = {
                     }
 
                 // performance: only process swipe events if `swipe.*` event is registered on this element
-                } else if (($this.hasSwipe || $this.hasFlick) && !$this.swipeOutBounded) {
-                    $this.swipeOutBounded = !isOrthogonal(absX,absY)
-
                 }
 
                 if ($this.touchMoved && ($this.hasFlick || $this.hasSwipe)) {
@@ -232,11 +239,8 @@ var vueTouchEvents = {
                     }
 
                 }
-                else if ($this.hasMultiSwipe && !$this.swipeOutBounded) {
-                    $this.swipeOutBounded = !isOrthogonal(absX,absY)
-                }
 
-                if ($this.touchMoved && $this.hasMultiSwipe) {
+                if ($this.touchMoved && ($this.hasMultiSwipe || $this.hasMultiFlick)) {
                     if (absX > $this.largestXDst) {
                         $this.largestXDst = absX;
                         $this.farthestX = curX;
@@ -267,14 +271,14 @@ var vueTouchEvents = {
 
             // ignore residual touches from multitouch events
             if (isTouchEvent) {
-                if (event.touches.length >= 1 || (!$this.initialTouchStarted && $this.touchUpgraded)) {
+                if (event.touches.length >= 1 || (!$this.initialTouchStarted)) {
                     if (event.touches[0].identifier != $this.initialTouchID) {
                         // The touch events triggered by the first finger is used for gesture recognition,
                         // so once it has triggered its last touchend event, any future touchmove and touchend events
                         // triggered by the other fingers (or finger) should be ignored.
                         $this.dropEnd = true
-                        $this.trueEndX = event.clientX
-                        $this.trueEndY = event.clientY
+                        $this.trueEndX = $this.currentX
+                        $this.trueEndY = $this.currentY
                     }
                     return;
                 }
@@ -337,14 +341,12 @@ var vueTouchEvents = {
                     var flickX = curDstX < 0.5 * $this.largestXDst;
                     var flickY = curDstY < 0.5 * $this.largestYDst;
 
-                    var swipeOutBounded = $this.options.swipeTolerance,
-                        direction,
+                    var direction,
                         flicking,
                         distanceY = Math.abs($this.startY - $this.farthestY),
                         distanceX = Math.abs($this.startX - $this.farthestX);
 
                     if (isOrthogonal(distanceX, distanceY)) {
-
                         if (distanceY > distanceX) {
                             direction = $this.startY > $this.farthestY ? 'top' : 'bottom';
                             flicking = flickY;
@@ -352,16 +354,17 @@ var vueTouchEvents = {
                             direction = $this.startX > $this.farthestX ? 'left' : 'right';
                             flicking = flickX;
                         }
-
-                        if (hasEvent(this, 'flick.' + direction) && flicking) {
-                            triggerEvent(event, this, 'flick.' + direction, direction);
-                        }  else
-
-                        if (hasEvent(this, 'swipe.' + direction)) {
-                            triggerEvent(event, this, 'swipe.' + direction, direction);
-                        } else {
-                            triggerEvent(event, this, 'swipe', direction);
-                        }
+                    } else {
+                        var vertical_dir = $this.farthestY > $this.startY ? 'bottom' : 'top';
+                        var horizontal_dir = $this.farthestX > $this.startX ? 'right' : 'left';
+                        direction = `${vertical_dir}${horizontal_dir}`;
+                        flicking = flickX && flickY;
+                    }
+                    if (hasEvent(this, 'flick.' + direction) && flicking) {
+                        triggerEvent(event, this, 'flick.' + direction, direction);
+                    }  else
+                    if (hasEvent(this, 'swipe.' + direction) && !flicking) {
+                        triggerEvent(event, this, 'swipe.' + direction, direction);
                     }
                 }
             } else {
@@ -369,25 +372,36 @@ var vueTouchEvents = {
                     triggerEvent(event, this, 'multitap');
                 } else if (($this.hasMultiSwipe || $this.hasMultiFlick)&& $this.touchMoved) {
 
-                    var swipeOutBounded = $this.options.swipeTolerance,
-                        direction,
+                    var direction,
+                        flicking,
                         distanceY = Math.abs($this.touchUpgradedStartY - $this.farthestY),
                         distanceX = Math.abs($this.touchUpgradedStartX - $this.farthestX);
+
+                    var curDstX = Math.abs($this.currentX - $this.touchUpgradedStartX);
+                    var curDstY = Math.abs($this.currentY - $this.touchUpgradedStartY);
+
+                    var flickX = curDstX < 0.5 * $this.largestXDst;
+                    var flickY = curDstY < 0.5 * $this.largestYDst;
 
                     if (isOrthogonal(distanceX, distanceY)) {
                         if (distanceY > distanceX) {
                             direction = $this.startY > $this.farthestY ? 'top' : 'bottom';
+                            flicking = flickY;
                         } else {
                             direction = $this.startX > $this.farthestX ? 'left' : 'right';
+                            flicking = flickX;
                         }
-
-                        if (hasEvent(this, 'multiflick.' + direction) && flicking) {
-                            triggerEvent(event, this, 'multiflick.' + direction, direction);
-                        }  else if (hasEvent(this, 'multiswipe.' + direction)) {
-                            triggerEvent(event, this, 'multiswipe.' + direction, direction);
-                        } else {
-                            triggerEvent(event, this, 'multiswipe', direction);
-                        }
+                    } else {
+                        var vertical_dir = $this.farthestY > $this.startY ? 'bottom' : 'top';
+                        var horizontal_dir = $this.farthestX > $this.startX ? 'right' : 'left';
+                        direction = `${vertical_dir}${horizontal_dir}`;
+                        flicking = flickX && flickY;
+                    }
+                    if (hasEvent(this, 'multiflick.' + direction) && flicking) {
+                        triggerEvent(event, this, 'multiflick.' + direction, direction);
+                    }  else
+                    if (hasEvent(this, 'multiswipe.' + direction) && !flicking) {
+                        triggerEvent(event, this, 'multiswipe.' + direction, direction);
                     }
                 }
             }
@@ -403,21 +417,21 @@ var vueTouchEvents = {
 
         function hasEvent($el, eventType) {
             var callbacks = $el.$$touchObj.callbacks[eventType];
-			return (callbacks != null && callbacks.length > 0);
-		}
-		
+                        return (callbacks != null && callbacks.length > 0);
+                }
+
         function triggerEvent(e, $el, eventType, param) {
             var $this = $el.$$touchObj;
 
             // get the subscribers for this event
             var callbacks = $this.callbacks[eventType];
-			
-			// exit if no subscribers to this particular event
+
+                        // exit if no subscribers to this particular event
             if (callbacks == null || callbacks.length === 0) {
                 return null;
             }
 
-			// per callback
+                        // per callback
             for (var i = 0; i < callbacks.length; i++) {
                 var binding = callbacks[i];
 
@@ -496,9 +510,9 @@ var vueTouchEvents = {
                 switch (eventType) {
                     case 'swipe':
                         var _m = binding.modifiers;
-                        if (_m.left || _m.right || _m.top || _m.bottom) {
+                        if (_m.left || _m.right || _m.top || _m.bottom || _m.topleft || _m.topright || _m.bottomleft || _m.bottomright) {
                             for (var i in binding.modifiers) {
-                                if (['left', 'right', 'top', 'bottom'].indexOf(i) >= 0) {
+                                if (['left', 'right', 'top', 'bottom', 'topleft', 'topright', 'bottomleft', 'bottomright'].indexOf(i) >= 0) {
                                     var _e = 'swipe.' + i;
                                     $this.callbacks[_e] = $this.callbacks[_e] || [];
                                     $this.callbacks[_e].push(binding);
@@ -511,9 +525,9 @@ var vueTouchEvents = {
                         break;
                     case 'flick':
                         var _m = binding.modifiers;
-                        if (_m.left || _m.right || _m.top || _m.bottom) {
+                        if (_m.left || _m.right || _m.top || _m.bottom || _m.topleft || _m.topright || _m.bottomleft || _m.bottomright) {
                             for (var i in binding.modifiers) {
-                                if (['left', 'right', 'top', 'bottom'].indexOf(i) >= 0) {
+                                if (['left', 'right', 'top', 'bottom', 'topleft', 'topright', 'bottomleft', 'bottomright'].indexOf(i) >= 0) {
                                     var _e = 'flick.' + i;
                                     $this.callbacks[_e] = $this.callbacks[_e] || [];
                                     $this.callbacks[_e].push(binding);
@@ -526,17 +540,32 @@ var vueTouchEvents = {
                         break;
                     case 'multiswipe':
                         var _m = binding.modifiers;
-                        if (_m.left || _m.right || _m.top || _m.bottom) {
+                        if (_m.left || _m.right || _m.top || _m.bottom || _m.topleft || _m.topright || _m.bottomleft || _m.bottomrigh) {
                             for (var i in binding.modifiers) {
-                                if (['left', 'right', 'top', 'bottom'].indexOf(i) >= 0) {
+                                if (['left', 'right', 'top', 'bottom', 'topleft', 'topright', 'bottomleft', 'bottomright'].indexOf(i) >= 0) {
                                     var _e = 'multiswipe.' + i;
                                     $this.callbacks[_e] = $this.callbacks[_e] || [];
                                     $this.callbacks[_e].push(binding);
                                 }
                             }
                         } else {
-                            $this.callbacks.flick = $this.callbacks.flick || [];
-                            $this.callbacks.flick.push(binding);
+                            $this.callbacks.multiswipe = $this.callbacks.multiswipe || [];
+                            $this.callbacks.multiswipe.push(binding);
+                        }
+                        break;
+                    case 'multiflick':
+                        var _m = binding.modifiers;
+                        if (_m.left || _m.right || _m.top || _m.bottom || _m.topleft || _m.topright || _m.bottomleft || _m.bottomrigh) {
+                            for (var i in binding.modifiers) {
+                                if (['left', 'right', 'top', 'bottom', 'topleft', 'topright', 'bottomleft', 'bottomright'].indexOf(i) >= 0) {
+                                    var _e = 'multiflick.' + i;
+                                    $this.callbacks[_e] = $this.callbacks[_e] || [];
+                                    $this.callbacks[_e].push(binding);
+                                }
+                            }
+                        } else {
+                            $this.callbacks.multiflick = $this.callbacks.multiflick || [];
+                            $this.callbacks.multiflick.push(binding);
                         }
                         break;
 

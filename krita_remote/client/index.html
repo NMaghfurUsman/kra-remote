@@ -55,20 +55,25 @@
                 area.appendChild(origin_label)
             }
 
-            // Orthogonal gestures (swipes/flicks)
+            // Directional gestures (swipes/flicks)
 
-            const ortho_gestures = {
+            const directional_gestures = {
                 'east':  ['swipe.right', 'multiswipe.right', 'flick.right', 'multiflick.right'],
                 'west':  ['swipe.left', 'multiswipe.left', 'flick.left', 'multiflick.left'],
                 'north': ['swipe.top', 'multiswipe.top', 'flick.top', 'multiflick.top'],
                 'south': ['swipe.bottom', 'multiswipe.bottom', 'flick.bottom', 'multiflick.bottom'],
+                'northeast': ['swipe.topright', 'multiswipe.topright', 'flick.topright', 'multiflick.topright'],
+                'northwest': ['swipe.topleft', 'multiswipe.topleft', 'flick.topleft', 'multiflick.topleft'],
+                'southeast': ['swipe.bottomright', 'multiswipe.bottomright', 'flick.bottomright', 'multiflick.bottomright'],
+                'southwest': ['swipe.bottomleft', 'multiswipe.bottomleft', 'flick.bottomleft', 'multiflick.bottomleft']
+
             }
-            for (const direction in ortho_gestures) {
+            for (const direction in directional_gestures) {
                 var dir_html = ""
                 const dir_label = document.createElement('div')
                 dir_label.classList.add(...[direction])
-                    for (const gesture_idx in ortho_gestures[direction]) {
-                        const gesture = ortho_gestures[direction][gesture_idx]
+                    for (const gesture_idx in directional_gestures[direction]) {
+                        const gesture = directional_gestures[direction][gesture_idx]
                         const gesture_type = gesture.split('.')[0]
                         const action = area.getAttribute(gesture)
                         area.removeAttribute(gesture)
@@ -262,26 +267,41 @@
             </div>
             <div class="active-area grid9by9 mid-c top-r flat-top"
                 tap="tool:KisToolTransform.transform"
-                swipe.right="erase_action.erase mode"
-                swipe.left="clear"
+                swipe.right="show_color_selector.color"
+                flick.right="preserve_alpha.alpha lock"
+                swipe.left="save_incremental_version.inc save"
                 flick.left="view_toggledockers.canvas only"
                 swipe.bottom="edit_paste.paste"
-                multiswipe.left="file_quit.quit">
+                multiswipe.left="file_quit.quit"
+                swipe.bottomleft="isolate_active_layer.isolate"
+                multiswipe.bottomleft="remove_layer.del layer"
+                swipe.topleft="file_save_as.save as"
+                >
             </div>
             <div class="active-area grid9by9 mid-c mid-r"
                 multitap="edit_redo.redo"
                 tap="edit_undo.undo"
                 swipe.right="eraser_preset_action.eraser"
-                flick.right="tool:KisToolEncloseAndFill.enclose fill"
-                multiswipe.right="tool:KritaShape/KisToolLine.line"
+                flick.right="erase_action.erase mode"
+                swipe.topright="tool:KritaShape/KisToolLine.line"
+                flick.left="tool:KritaShape/KisToolDyna.dyna"
                 swipe.bottom="mirror_canvas.mirror"
                 multiswipe.bottom="deselect.deslect"
                 flick.bottom="add_new_paint_layer.add layer"
-                swipe.top="edit_cut.cut"
-                multiswipe.top="tool:KisToolSelectOutline.select"
+                multiflick.bottom="merge_layer.merge layer"
+                multiswipe.top="edit_cut.cut"
+                swipe.top="tool:KisToolSelectOutline.select"
+                flick.topright="tool:KisToolSelectPolygonal.poly select"
                 flick.top="edit_copy.copy"
+                multiflick.top="invert_selection.inv select"
                 swipe.left="tool:KritaShape/KisToolBrush.brush"
-                flick.left="file_save_as.save as">
+                swipe.topleft="activatePreviousLayer.prev layer"
+                multiswipe.topleft="move_layer_up.move up"
+                swipe.bottomleft="activateNextLayer.next layer"
+                multiswipe.bottomleft="move_layer_down.move down"
+                multiswipe.right="clear"
+                multiswipe.left="fill_selection_foreground_color.sel fill"
+                >
             </div>
             <div class="active-area grid9by9 mid-c bot-r flat-bottom"
                 keypress="Key_Shift.shift"

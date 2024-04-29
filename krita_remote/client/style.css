@@ -123,6 +123,22 @@ body {
   grid-column: 2;
   grid-row: 2;
 }
+.northeast {
+  grid-column: 3;
+  grid-row: 1;
+}
+.southeast {
+  grid-column: 3;
+  grid-row: 3;
+}
+.northwest {
+  grid-column: 1;
+  grid-row: 1;
+}
+.southwest {
+  grid-column: 1;
+  grid-row: 3;
+}
 
 .active-area {
   user-select: none;
@@ -195,5 +211,5 @@ body {
 }
 
 .multiflick {
-  font-weight: normal;
+  font-weight: lighter;
 }
