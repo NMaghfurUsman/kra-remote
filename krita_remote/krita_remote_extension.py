@@ -1,51 +1,40 @@
-from random import randint
 from typing import Any
 from krita import Extension # type: ignore
-from .connection import WSConnection
-from .api_krita import Krita
-from .api_krita.enums import Tool
-from PyQt5.QtCore import pyqtProperty, pyqtSlot, QEvent, Qt, QObject
+from PyQt5.QtCore import pyqtProperty, pyqtSlot, QEvent, Qt
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QKeyEvent
-from .connection.http_server import HTTPServer
-from threading import Thread
+from .connection import SocketServer
+from .api_krita import Krita
+from .api_krita.enums import Tool
+from .connection.http_server import WebServer
 
 class KritaRemoteExtension(Extension):
 
-    _connection: WSConnection
-    _server_thread: Thread
-    _server: HTTPServer
+    _socket: SocketServer
+    _server: WebServer
     _canvas: Any
 
     def __init__(self, parent):
         super().__init__(parent)
 
     def setup(self):
-        self._connection = WSConnection()
-        self._connection.action.connect(self.action)
-        self._connection.press.connect(self.press)
-        self._connection.release.connect(self.release)
-        self._connection.tool.connect(self.tool)
-        self._connection.serverListening.connect(self.startHTTPServer)
+        self._socket = SocketServer()
+        self._socket.action.connect(self.action)
+        self._socket.press.connect(self.press)
+        self._socket.release.connect(self.release)
+        self._socket.tool.connect(self.tool)
 
-        self._server = HTTPServer()
-        self._server_thread = Thread(target=self._server.serve_forever)
-        self._server_thread.daemon = True
+        self._server = WebServer()
 
     def createActions(self, window):
         pass
 
-    @pyqtSlot(str)
-    def startHTTPServer(self, _msg: str):
-        if not self._server_thread.is_alive():
-            self._server_thread.start()
+    @pyqtProperty(SocketServer)
+    def socket(self) -> SocketServer:
+        return self._socket
 
-    @pyqtProperty(WSConnection)
-    def connection(self) -> WSConnection:
-        return self._connection
-
-    @pyqtProperty(HTTPServer)
-    def server(self) -> HTTPServer:
+    @pyqtProperty(WebServer)
+    def server(self) -> WebServer:
         return self._server
 
     @pyqtSlot(str)

@@ -1,19 +1,20 @@
-from ..ws_connection import WSConnection
+from ..ws_connection import SocketServer
+from ..http_server import WebServer
 from .event_log import EventLog
+from .qr_window import QRDialog
 from PyQt5.QtWidgets import QBoxLayout, QFrame, QPushButton
 from PyQt5.QtCore import QObject
 from PyQt5.QtCore import pyqtSlot
-from krita_remote.connection.gui.qr_window import QRDialog
 
 class DockFrame(QFrame):
     
-    def __init__(self, connection: WSConnection, parent: QObject):
+    def __init__(self, socket: SocketServer, server: WebServer, parent: QObject):
         super().__init__(parent)
         
         # initialize GUI elements
-        self._client_log = EventLog(connection, parent)
-        self._connect_button = ConnectButton(connection, self)
-        self._disconnect_button = DisconnectButton(connection, self)
+        self._client_log = EventLog(socket, server, parent)
+        self._connect_button = ConnectButton(socket, server, self)
+        self._disconnect_button = DisconnectButton(socket, server, self)
 
         # initialize layouts
         main_layout: QBoxLayout = QBoxLayout(QBoxLayout.Direction.Down, self)
@@ -26,14 +27,14 @@ class DockFrame(QFrame):
         main_layout.addLayout(btn_row)
         main_layout.addWidget(self._client_log)
         
-        connection.connectClientSignals(self)
+        socket.connectClientSignals(self)
         
         self._clear_button = ClearButton(self, target=self._client_log)
         main_layout.addWidget(self._clear_button)
 
     @pyqtSlot()
     def showQRDialog(self):
-        self._qr_dialog = QRDialog(self.parentWidget()._extension.server.address, self.parentWidget()._extension.connection.address())
+        self._qr_dialog = QRDialog(self.parentWidget()._extension.server.address, self.parentWidget()._extension.socket.address)
         self._qr_dialog.show()
         
     def onClientConnected(self):
@@ -48,15 +49,16 @@ class DockFrame(QFrame):
     
 class ConnectButton(QPushButton):
         
-    def __init__(self, c: WSConnection, parent: DockFrame):
+    def __init__(self, s: SocketServer, w: WebServer, parent: DockFrame):
         super().__init__(parent)
         self.setText("Connect")
-        if (c.address()):
+        if (s.address):
             self.setEnabled(False)
         else:
             self.setEnabled(True)
-        c.connectClientSignals(self)
-        self.clicked.connect(c.startServer)
+        s.connectClientSignals(self)
+        self.clicked.connect(s.startListening)
+        self.clicked.connect(w.startServer)
         self.clicked.connect(parent.showQRDialog)
         
     def onClientConnected(self):
@@ -69,15 +71,16 @@ class ConnectButton(QPushButton):
         pass
         
 class DisconnectButton(QPushButton):
-    def __init__(self, c: WSConnection, parent: DockFrame):
+    def __init__(self, s: SocketServer, w: WebServer, parent: DockFrame):
         super().__init__(parent)
         self.setText("Disconnect")
-        if (c.address()):
+        if (s.address):
             self.setEnabled(True)
         else:
             self.setEnabled(False)
-        c.connectClientSignals(self)
-        self.clicked.connect(c.stopServer)
+        s.connectClientSignals(self)
+        self.clicked.connect(s.stopListening)
+        self.clicked.connect(w.stopServer)
         
     def onClientConnected(self):
         self.setEnabled(True)

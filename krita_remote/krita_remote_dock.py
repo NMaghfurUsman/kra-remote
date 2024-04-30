@@ -17,7 +17,7 @@ class KritaRemoteDockWidget(DockWidget):
         self.setWindowTitle(DOCKER_TITLE)
         
         self._extension: KritaRemoteExtension = [e for e in Krita.instance.extensions() if e.__class__.__name__=="KritaRemoteExtension"][0]
-        self._dock_frame = DockFrame(self._extension.connection, self) # type: ignore
+        self._dock_frame = DockFrame(self._extension.socket, self._extension.server, self)
         self.setWidget(self._dock_frame)
 
     def canvasChanged(self, canvas: Any):
