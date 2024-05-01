@@ -22,7 +22,20 @@
       devShells = forEachSystem
         (system:
           let
-            pkgs = nixpkgs.legacyPackages.${system};
+            pkgs = nixpkgs.legacyPackages.${system}.extend
+              (final: prev: {
+                git-archive-all = prev.git-archive-all.overrideAttrs (
+                  finalAttrs: oldAttrs: {
+                    src = prev.fetchFromGitHub {
+                      owner = "NMaghfurUsman";
+                      repo = "git-archive-all";
+                      rev = "master";
+                      hash = "sha256-sRqy9AayLa4Xv2316kWhgyuX+47YZFU0oZ+xZFT6qCI=";
+                      };
+                    }
+                  );
+                }
+            ) ;
           in
           {
             default = devenv.lib.mkShell {
@@ -30,9 +43,15 @@
               modules = [
                 {
                   # https://devenv.sh/reference/options/
-                  packages = [ pkgs.python3Packages.pyqt5 pkgs.python3Packages.pyqt5-stubs pkgs.python3Packages.pyqt5-sip];
+                  packages = with pkgs; [ 
+                    python3Packages.pyqt5 
+                    python3Packages.pyqt5-stubs 
+                    git-archive-all];
                   processes = {
                         client.exec = "python -m http.server -d ./krita_remote/client";
+                  };
+                  scripts = {
+                        build-plugin.exec = "git-archive-all -D krita_remote.zip";
                   };
                   env.PYTHONPATH = "${pkgs.python3Packages.pyqt5}/lib/python3.11/site-packages/";
                   enterShell = ''
