@@ -1,3 +1,3 @@
-from .ws_connection import SocketServer
+from .socket_server import SocketServer
 
 __all__ = ["SocketServer"]

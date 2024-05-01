@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QTextEdit, QWidget
-from ..ws_connection import SocketServer
-from ..http_server import WebServer
+from ..socket_server import SocketServer
+from ..web_server import WebServer
 
 class EventLog(QTextEdit):
 
@@ -24,10 +24,10 @@ class EventLog(QTextEdit):
         self.append("Client rejected")
 
     def onServerListening(self, address: str):
-        self.append("WebSocket server listening on {}".format(address))
+        self.append("Socket server: {}".format(address))
 
     def onServerStarted(self, address: str):
-        self.append("HTTP server listening on {}".format(address))
+        self.append("Web server: {}".format(address))
 
     def onServerStopped(self):
         self.append("Server stopped")

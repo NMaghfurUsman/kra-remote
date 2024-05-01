@@ -1,5 +1,5 @@
-from ..ws_connection import SocketServer
-from ..http_server import WebServer
+from ..socket_server import SocketServer
+from ..web_server import WebServer
 from .event_log import EventLog
 from .qr_window import QRDialog
 from PyQt5.QtWidgets import QBoxLayout, QFrame, QPushButton

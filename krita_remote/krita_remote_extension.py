@@ -6,7 +6,7 @@ from PyQt5.QtGui import QKeyEvent
 from .connection import SocketServer
 from .api_krita import Krita
 from .api_krita.enums import Tool
-from .connection.http_server import WebServer
+from .connection.web_server import WebServer
 
 class KritaRemoteExtension(Extension):
 
