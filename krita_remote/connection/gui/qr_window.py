@@ -41,8 +41,17 @@ class QRDialog(QDialog):
         
         warning.setText("Remote connection is NOT SECURE as TLS is unsupported.\nDO NOT SCAN QR CODE WHILE CONNECTED TO UNTRUSTED WIFI!!!")
         
+        self.url = QLabel(frame)
+
         layout.addWidget(warning)
         layout.addWidget(self.label)
+        layout.addWidget(self.url)
 
     def set_pixmap(self, http_url, ws_url):
+        url = "{}/#{}".format(http_url, ws_url)
+        self.url.setText("<a href=\"{}\">{}</a>".format(url, url))
+        self.url.setTextFormat(Qt.RichText)
+        self.url.setTextInteractionFlags(Qt.TextBrowserInteraction)
+        self.url.setOpenExternalLinks(True)
+
         self.label.setPixmap(generate_qr(http_url,ws_url))
