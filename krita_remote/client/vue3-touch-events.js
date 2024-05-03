@@ -49,7 +49,7 @@ var vueTouchEvents = {
     install: function (app, constructorOptions) {
 
         var globalOptions = Object.assign({}, {
-            disableClick: true,
+            disableClick: false,
             tapTolerance: 10,  // px
             swipeTolerance: 40,  // px
             touchHoldTolerance: 400,  // ms
