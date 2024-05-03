@@ -40,17 +40,17 @@ The client (ie, the remote control) is a simple Vue webapp that is served using 
  - drag
  - press
  - release
- - swipe (top/bottom/left/right)
- - flick (top/bottom/left/right), this is a directional swipe gesture that is followed immediately by a swipe gesture back to where you started, without releasing your finger.
+ - swipe (orthogonal and diagonal directions)
+ - flick (orthogonal and diagonal directions), this is a directional swipe gesture that is followed immediately by swiping back to where you started, without releasing your finger.
 
-I have added basic multi-touch gestures, so a different action is triggered for touch gestures that are performed with more than one finger (it only distinguishes multi-finger gestures from single-finger gestures, so using 2 or more fingers will trigger the same action)
+I have added basic multi-touch gestures, so a different action is triggered for touch gestures that are performed with more than one finger (it only distinguishes multi-finger gestures from single-finger gestures, so using 2 or more fingers will trigger the same action. 3-finger and 4-finger gestures are typically reserved for the operating system's own use)
 
  - multitap
  - multipress
  - multirelease
  - multiswipe
+ - multiflick
  - TODO: multidrag
- - TODO: multiflick
 
  This client is just an experimental proof-of-concept. It doesn't even have to be a webapp, anything that can connect to WebSockets are just as capable.
 
