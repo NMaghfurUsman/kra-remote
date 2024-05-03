@@ -34,8 +34,11 @@ class DockFrame(QFrame):
 
     @pyqtSlot()
     def showQRDialog(self):
-        self._qr_dialog = QRDialog(self.parentWidget()._extension.server.address, self.parentWidget()._extension.socket.address)
+        self._qr_dialog = QRDialog()
+        self._qr_dialog.setModal(True)
         self._qr_dialog.show()
+        self._qr_dialog.activateWindow()
+        self._qr_dialog.set_pixmap(self.parentWidget()._extension.server.address, self.parentWidget()._extension.socket.address)
         
     def onClientConnected(self):
         if (self._qr_dialog.isVisible()):

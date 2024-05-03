@@ -16,30 +16,33 @@ def generate_qr(client_url: str, ws_url: str)-> QPixmap:
             "bgcolor": "ffffff"
             })
         url = "https://api.qrserver.com/v1/create-qr-code/?{}".format(url_param)
-        response = urllib.request.urlopen(url, timeout=10)
-        image = QPixmap()
-        image.loadFromData(response.read())
+        with urllib.request.urlopen(url, timeout=10) as response:
+            assert response.status == 200
+            image = QPixmap()
+            image.loadFromData(response.read())
         return image
 
 class QRDialog(QDialog):
-    def __init__(self, http_url, ws_url, **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
         
         frame = QFrame(self)
         layout = QBoxLayout(QBoxLayout.Direction.Down, frame)
-        label = QLabel(frame)
+        self.label = QLabel(frame)
         warning = QLabel(frame)
         
-        self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
-        self.setMinimumSize(QSize(300,300))
-        self.setWindowTitle("Scan on your phone to use Krita Remote")
+        self.setWindowFlags(self.windowFlags())
+        self.setMinimumSize(QSize(300,500))
+        self.setWindowTitle("Scan the QR code on your phone")
         self.setLayout(layout)
         
         layout.setAlignment(Qt.AlignCenter)
         layout.setContentsMargins(50,50,50,50)
         
-        warning.setText("Remote connection is NOT SECURE as TLS is unsupported.\nDO NOT SCAN WHILE CONNECTED TO UNTRUSTED WIFI!!!")
-        label.setPixmap(generate_qr(http_url,ws_url))
+        warning.setText("Remote connection is NOT SECURE as TLS is unsupported.\nDO NOT SCAN QR CODE WHILE CONNECTED TO UNTRUSTED WIFI!!!")
         
         layout.addWidget(warning)
-        layout.addWidget(label)
+        layout.addWidget(self.label)
+
+    def set_pixmap(self, http_url, ws_url):
+        self.label.setPixmap(generate_qr(http_url,ws_url))

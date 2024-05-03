@@ -90,12 +90,12 @@ class SocketServer(QObject):
                 self.clientMessageReceived.emit(msg)
             self.client = False
 
-        self.server = serve(handler, ip.toString(), self.port)
+        self.server = serve(handler, "0.0.0.0", self.port)
         self.server_thread = Thread(target=self.server.serve_forever)
         self.server_thread.start()
 
         if (self.server_thread.is_alive()):
-            self.serverListening.emit(ip.toString()+":"+str(port))
+            self.serverListening.emit("ws://{}:{}".format(ip.toString(),str(port)))
         else:
             self.serverStopped.emit()
 
