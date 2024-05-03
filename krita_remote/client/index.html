@@ -223,6 +223,15 @@
                         }
                         }
                     },
+                make_fullscreen_toggle() {
+                    return (ev) => {
+                        if (document.fullscreenElement) {
+                            document.exitFullscreen()
+                        } else {
+                            document.body.requestFullscreen()
+                        }
+                    }
+                },
                 drag_start(ev) {
                     this.drag_started = true;
                     if (ev.clientY) {
@@ -266,6 +275,7 @@
                 drag='{"up": "action:increase_brush_size", "down":"action:decrease_brush_size"}'>
             </div>
             <div class="active-area grid9by9 mid-c top-r flat-top"
+                v-touch:longtap="make_fullscreen_toggle()"
                 tap="tool:KisToolTransform.transform"
                 swipe.right="show_color_selector.color"
                 flick.right="preserve_alpha.alpha lock"
