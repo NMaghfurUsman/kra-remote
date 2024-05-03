@@ -88,6 +88,7 @@ class SocketServer(QObject):
             self.clientConnected.emit()
             for msg in ws:
                 self.clientMessageReceived.emit(msg)
+            self.clientDisconnected.emit()
             self.client = False
 
         self.server = serve(handler, "0.0.0.0", self.port)
