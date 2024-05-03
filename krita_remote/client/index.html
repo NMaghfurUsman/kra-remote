@@ -269,12 +269,12 @@
 <body>
     <div id="app" style="padding: 0px; margin: 0p;">
         <div id="pad">
-            <div class="active-area col flat-left"
+            <div class="active-area col"
                 label="size"
                 multidrag='{"up": "action:increase_opacity", "down":"action:decrease_opacity"}'
                 drag='{"up": "action:increase_brush_size", "down":"action:decrease_brush_size"}'>
             </div>
-            <div class="active-area grid9by9 mid-c top-r flat-top"
+            <div class="active-area grid9by9 mid-c top-r"
                 v-touch:longtap="make_fullscreen_toggle()"
                 tap="tool:KisToolTransform.transform"
                 swipe.right="show_color_selector.color"
@@ -313,14 +313,18 @@
                 multiswipe.left="fill_selection_foreground_color.sel fill"
                 >
             </div>
-            <div class="active-area grid9by9 mid-c bot-r flat-bottom"
+            <div class="active-area grid9by9 mid-c bot-r"
                 keypress="Key_Shift.shift"
                 multikeypress="Key_Control.ctrl">
             </div>
-            <div class="active-area col flat-right"
+            <div class="active-area col mid-r"
                  label="opacity"
                  drag='{"up": "action:increase_opacity", "down":"action:decrease_opacity"}'>
-                </div>
+            </div>
+            <div class="active-area top-b" tap="tool:KritaShape/KisToolLine.l"></div>
+            <div class="active-area top-b" keypress="Key_V.l"></div>
+            <div class="active-area bot-b" keypress="Key_R.r"></div>
+            <div class="active-area bot-b" keypress="Key_Alt.alt"></div>
         </div>
         <div v-if="!connected" id="connection"
             v-touch:tap="promptConnection">

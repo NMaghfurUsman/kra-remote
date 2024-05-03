@@ -18,9 +18,6 @@
   .activated {
     background-color: #f1e9d2   ;
   }
-  .col {
-    filter: drop-shadow(0 0 8px #8faaab);
-  }
 }
 @media (prefers-color-scheme: dark) {
 
@@ -39,9 +36,6 @@
   .activated {
     background-color: #093946;
   }
-  .col {
-    filter: drop-shadow(0 0 8px #2b90d8);
-  }
 }
 
 body {
@@ -52,23 +46,31 @@ body {
 }
 
 .mid-c {
-  border-width: 0px;
   grid-column: 2;
 }
+
+.top-b {
+  grid-row: 1;
+}
+
+.bot-b {
+  grid-row: 5;
+}
+
 .top-r {
-  border-width: 0px 0px 1px 0px;
-  grid-row: 1
+  grid-row-start: 1;
+  grid-row-end: 3;
 }
 .mid-r {
-  grid-row: 2
+  grid-row: 3;
 }
 .bot-r {
-  border-width: 1px 0px 0px 0px;
-  grid-row: 3
+  grid-row-start: 4;
+  grid-row-end: 6;
 }
 .col   {
-  border-width: 1px 1px 0px 1px;
-  grid-row: 1/4;
+  grid-row-start: 2;
+  grid-row-end: 5;
 }
 
 #pad {
@@ -78,7 +80,7 @@ body {
   height:100vh;
   display: grid;
   grid-template-columns: 10% 80% 10%;
-  grid-template-rows: 33% 33% 33%;
+  grid-template-rows: 5% 28.3% 1fr 28.3% 5%;
 }
 
 #connection {
@@ -141,6 +143,7 @@ body {
 }
 
 .active-area {
+  border-width: 1px;
   user-select: none;
   touch-action: none;
   border-style: solid;
@@ -162,12 +165,8 @@ body {
   align-self: center;
 }
 
-.active-area .west, .col .origin {
+.col .origin {
   transform: rotate(-90deg);
-}
-
-.active-area .east {
-  transform: rotate(90deg);
 }
 
 .grid9by9 {
@@ -194,7 +193,6 @@ body {
 
 .col {
   font-size: 14pt;
-  scale: 1.2;
 }
 
 .tap, .swipe, .col div {
