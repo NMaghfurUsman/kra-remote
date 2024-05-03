@@ -42,7 +42,7 @@ class WebServer(QObject):
     def startServer(self):
         if not self._thread.is_alive():
             self._thread.start()
-            self.serverStarted.emit("{}:{}".format(self._server.address,self._server.port))
+            self.serverStarted.emit(self._server.address)
 
     @pyqtSlot()
     def stopServer(self):
