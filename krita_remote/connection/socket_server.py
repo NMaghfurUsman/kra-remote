@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from threading import Thread
 from typing import Protocol, Optional
 from random import randint
 from socket import gethostbyname, gethostname
@@ -6,7 +7,6 @@ from PyQt5.QtCore import QObject, pyqtSlot, pyqtSignal
 from PyQt5.QtNetwork import QHostAddress
 from PyQt5.QtCore import pyqtProperty
 from ..websockets.src.websockets.sync.server import serve, ServerConnection, WebSocketServer
-from threading import Thread
 
 class ServerListener(Protocol):
     
@@ -37,8 +37,7 @@ class ClientListener(Protocol):
     def onClientDisconnected(self) -> None:
         pass
 
-# Wrangles the websocket server and websocket connection
-class WSConnection(QObject):
+class SocketServer(QObject):
     
     port: Optional[int] = None
     server: Optional[WebSocketServer] = None
@@ -78,11 +77,7 @@ class WSConnection(QObject):
             self.release.emit(release)
 
     @pyqtSlot()
-    def onClientDisconnected(self):
-        self.client = False
-
-    @pyqtSlot()
-    def startServer(self):
+    def startListening(self):
         ip: QHostAddress = QHostAddress(gethostbyname(gethostname()))
         port = self.port or randint(9999,pow(2,16))
         self.port = port
@@ -93,7 +88,6 @@ class WSConnection(QObject):
             self.clientConnected.emit()
             for msg in ws:
                 self.clientMessageReceived.emit(msg)
-            self.clientDisconnected.emit()
             self.client = False
 
         self.server = serve(handler, ip.toString(), self.port)
@@ -105,14 +99,8 @@ class WSConnection(QObject):
         else:
             self.serverStopped.emit()
 
-    def address(self) -> str | None:
-        if (self.server_thread and self.server_thread.is_alive()):
-            return "ws://{}:{}/".format(gethostbyname(gethostname()), self.port)
-        else:
-            return None
-
     @pyqtSlot()
-    def stopServer(self):
+    def stopListening(self):
         if (self.server_thread and self.server_thread.is_alive()):
             assert self.server
             assert self.client
@@ -121,18 +109,14 @@ class WSConnection(QObject):
             self.connection.close()
             self.serverStopped.emit()
             self.server = None
-            
-    @pyqtProperty(bool)
-    def connected(self) -> bool:
-        return self.client
-    
-    @pyqtProperty(bool)
-    def listening(self) -> bool:
-        if (self.server_thread):
-            return self.server_thread.is_alive()
+
+    @pyqtProperty(str)
+    def address(self) -> str | None:
+        if (self.server_thread and self.server_thread.is_alive()):
+            return "ws://{}:{}/".format(gethostbyname(gethostname()), self.port)
         else:
-            return False
-    
+            return None
+
     def connectClientSignals(self, listener: ClientListener) -> None:
         self.clientMessageReceived.connect(listener.onClientMessage)
         self.clientConnected.connect(listener.onClientConnected)
