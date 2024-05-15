@@ -1,3 +1,6 @@
 [submodule "krita_remote/websockets"]
 	path = krita_remote/websockets
 	url = https://github.com/python-websockets/websockets
+[submodule "krita_remote/qrcode"]
+	path = krita_remote/qrcode
+	url = https://github.com/lincolnloop/python-qrcode
