@@ -6,6 +6,7 @@ from socket import gethostbyname, gethostname
 from PyQt5.QtCore import QObject, pyqtSlot, pyqtSignal
 from PyQt5.QtNetwork import QHostAddress
 from PyQt5.QtCore import pyqtProperty
+from krita_remote.websockets.src.websockets.exceptions import ConnectionClosedError
 from ..websockets.src.websockets.sync.server import serve, ServerConnection, WebSocketServer
 
 class ServerListener(Protocol):
@@ -86,8 +87,13 @@ class SocketServer(QObject):
             self.client = True
             self.connection = ws
             self.clientConnected.emit()
-            for msg in ws:
-                self.clientMessageReceived.emit(msg)
+            try:
+                for msg in ws:
+                    self.clientMessageReceived.emit(msg)
+            except ConnectionClosedError:
+                self.clientDisconnected.emit()
+                self.client = False
+                return    
             self.clientDisconnected.emit()
             self.client = False
 
