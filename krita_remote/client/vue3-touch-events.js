@@ -56,8 +56,8 @@ var vueTouchEvents = {
             longTapTimeInterval: 400,  // ms
             touchUpgradeWindow: 50, // ms
             touchClass: '',
-                        dragFrequency: 100, // ms
-                        rollOverFrequency: 100, // ms
+            dragFrequency: 100, // ms
+            rollOverFrequency: 100, // ms
         }, constructorOptions);
 
         function touchStartEvent(event) {
@@ -151,6 +151,12 @@ var vueTouchEvents = {
             $this.pressTimer = setTimeout(function() {
                 $this.pressTimer = null;
                 triggerEvent(event, $el, 'press');
+
+                // Sometimes touchEndEvent never gets emitted when a tap is too fast
+                // Do a manual sanity check just in case, to avoid getting stuck in "press" state
+                if ($this.initialTouchStarted == false) {
+                    triggerEvent(event, $el, 'release');
+                }
             }, $this.options.touchUpgradeWindow);
         }
 
