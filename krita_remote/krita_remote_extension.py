@@ -2,7 +2,7 @@ from typing import Any
 from krita import Extension # type: ignore
 from PyQt5.QtCore import pyqtProperty, pyqtSlot, QEvent, Qt
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtGui import QKeyEvent
+from PyQt5.QtGui import QKeyEvent, QIcon
 from .connection import SocketServer
 from .api_krita import Krita
 from .api_krita.enums import Tool
@@ -40,10 +40,11 @@ class KritaRemoteExtension(Extension):
     @pyqtSlot(str)
     def press(self, key: str):
         if self._canvas:
-            press = QKeyEvent(QEvent.KeyPress, getattr(Qt, key), Qt.NoModifier)
+            press = QKeyEvent(QEvent.ShortcutOverride, getattr(Qt, key), Qt.NoModifier)
             if not self._canvas.isActiveWindow():
                 self._canvas.activateWindow()
-            QApplication.sendEvent(self._canvas, press)
+            QApplication.postEvent(self._canvas, press)
+            Krita.instance.activeWindow().activeView().showFloatingMessage("press: {}".format(key), QIcon(), 100, 2)
 
     @pyqtSlot(str)
     def release(self, key: str):
@@ -51,12 +52,15 @@ class KritaRemoteExtension(Extension):
             release = QKeyEvent(QEvent.KeyRelease, getattr(Qt, key), Qt.NoModifier)
             if not self._canvas.isActiveWindow():
                 self._canvas.activateWindow()
-            QApplication.sendEvent(self._canvas, release)
+            QApplication.postEvent(self._canvas, release)
+            Krita.instance.activeWindow().activeView().showFloatingMessage("release: {}".format(key), QIcon(), 100, 2)
 
     @pyqtSlot(str)
     def action(self, action_name: str):
         Krita.trigger_action(action_name)
+        Krita.instance.activeWindow().activeView().showFloatingMessage(action_name, QIcon(), 100, 2)
 
     @pyqtSlot(str)
     def tool(self, tool_name: str):
         Krita.active_tool = Tool(tool_name)
+        Krita.instance.activeWindow().activeView().showFloatingMessage(tool_name, QIcon(), 100, 2)
