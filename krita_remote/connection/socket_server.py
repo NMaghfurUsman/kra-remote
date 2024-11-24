@@ -57,6 +57,8 @@ class SocketServer(QObject):
     press = pyqtSignal(str)
     release = pyqtSignal(str)
     tool = pyqtSignal(str)
+    blend = pyqtSignal(str)
+    script = pyqtSignal(str)
     
     def __init__(self):
         super().__init__()
@@ -67,6 +69,9 @@ class SocketServer(QObject):
         if (msg.startswith("action:tool:")):
             action_name = msg.split(":")[2]
             self.tool.emit(action_name)
+        elif (msg.startswith("action:blend:")):
+            action_name = msg.split(":")[2]
+            self.blend.emit(action_name)
         elif (msg.startswith("action:")):
             action_name = msg.split(":")[1]
             self.action.emit(action_name)
@@ -76,6 +81,9 @@ class SocketServer(QObject):
         elif (msg.startswith("release:")):
             release = msg.split(":")[1]
             self.release.emit(release)
+        elif (msg.startswith("script:")):
+            script = msg.split(":")[1]
+            self.script.emit(script)
 
     @pyqtSlot()
     def startListening(self):

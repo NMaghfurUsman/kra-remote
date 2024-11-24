@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QKeyEvent, QIcon
 from .connection import SocketServer
 from .api_krita import Krita
-from .api_krita.enums import Tool
+from .api_krita.enums import Tool, BlendingMode
 from .connection.web_server import WebServer
 
 class KritaRemoteExtension(Extension):
@@ -23,6 +23,8 @@ class KritaRemoteExtension(Extension):
         self._socket.press.connect(self.press)
         self._socket.release.connect(self.release)
         self._socket.tool.connect(self.tool)
+        self._socket.script.connect(self.script)
+        self._socket.blend.connect(self.script)
 
         self._server = WebServer()
 
@@ -64,3 +66,18 @@ class KritaRemoteExtension(Extension):
     def tool(self, tool_name: str):
         Krita.active_tool = Tool(tool_name)
         Krita.instance.activeWindow().activeView().showFloatingMessage(tool_name, QIcon(), 100, 2)
+
+    @pyqtSlot(str)
+    def blend(self, blend_name: str):
+        Krita.get_active_view().blending_mode = BlendingMode(blend_name)
+        Krita.instance.activeWindow().activeView().showFloatingMessage(blend_name, QIcon(), 100, 2)
+
+    @pyqtSlot(str)
+    def script(self, script_path: str):
+        Krita.instance.activeWindow().activeView().showFloatingMessage(script_path, QIcon(), 100, 2)
+        spec = importlib.util.spec_from_file_location("users_script", script_path)
+        try:
+            users_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(users_module)
+        except Exception as e:
+            window.activeView().showFloatingMessage(str(e), QIcon(), 2000, 1)
