@@ -3,14 +3,18 @@ from krita import Extension # type: ignore
 from PyQt5.QtCore import pyqtProperty, pyqtSlot, QEvent, Qt
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QKeyEvent, QIcon
-from .connection import SocketServer
+from .connection import SocketServer, TCPSocketServer
 from .api_krita import Krita
 from .api_krita.enums import Tool, BlendingMode
 from .connection.web_server import WebServer
+import importlib
+
+DUMMY_PORT = 12345
 
 class KritaRemoteExtension(Extension):
 
     _socket: SocketServer
+    _tcp: TCPSocketServer
     _server: WebServer
     _canvas: Any
 
@@ -19,12 +23,24 @@ class KritaRemoteExtension(Extension):
 
     def setup(self):
         self._socket = SocketServer()
+
+        self._socket.port = DUMMY_PORT or None
         self._socket.action.connect(self.action)
         self._socket.press.connect(self.press)
         self._socket.release.connect(self.release)
         self._socket.tool.connect(self.tool)
         self._socket.script.connect(self.script)
         self._socket.blend.connect(self.script)
+
+        self._tcp = TCPSocketServer()
+        self._tcp.port = DUMMY_PORT or None
+        self._tcp.action.connect(self.action)
+        self._tcp.press.connect(self.press)
+        self._tcp.release.connect(self.release)
+        self._tcp.blend.connect(self.blend)
+        self._tcp.tool.connect(self.tool)
+        self._tcp.script.connect(self.script)
+        self._tcp.startListening()
 
         self._server = WebServer()
 
@@ -38,6 +54,10 @@ class KritaRemoteExtension(Extension):
     @pyqtProperty(WebServer)
     def server(self) -> WebServer:
         return self._server
+
+    @pyqtProperty(TCPSocketServer)
+    def tcp(self) -> TCPSocketServer:
+        return self._tcp
 
     @pyqtSlot(str)
     def press(self, key: str):

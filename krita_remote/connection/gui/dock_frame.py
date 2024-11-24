@@ -1,4 +1,5 @@
 from ..socket_server import SocketServer
+from ..tcp_server import TCPSocketServer
 from ..web_server import WebServer
 from .event_log import EventLog
 from .qr_window import QRDialog
@@ -8,11 +9,12 @@ from PyQt5.QtCore import pyqtSlot
 
 class DockFrame(QFrame):
     
-    def __init__(self, socket: SocketServer, server: WebServer, parent: QObject):
+    def __init__(self, socket: SocketServer, server: WebServer, tcp: TCPSocketServer, parent: QObject):
         super().__init__(parent)
         
         # initialize GUI elements
         self._client_log = EventLog(socket, server, parent)
+        # self._client_log = EventLog(tcp, server, parent)
         self._connect_button = ConnectButton(socket, server, self)
         self._disconnect_button = DisconnectButton(socket, server, self)
 
