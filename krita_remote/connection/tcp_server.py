@@ -126,9 +126,13 @@ class TCPSocketServer(QObject):
     def stopListening(self):
         if (self.server_thread and self.server_thread.is_alive()):
             assert self.server
+            self.server.server_close()
             self.server.shutdown()
             self.serverStopped.emit()
             self.server = None
+            print("Server shutdown")
+        else:
+            print("No server shutdown")
 
     @pyqtProperty(str)
     def address(self) -> str | None:
