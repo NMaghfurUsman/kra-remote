@@ -24,7 +24,7 @@ class KritaRemoteExtension(Extension):
     def setup(self):
         self._socket = SocketServer()
 
-        self._socket.port = DUMMY_PORT or None
+        self._socket.port = DUMMY_PORT+1 or None
         self._socket.action.connect(self.action)
         self._socket.press.connect(self.press)
         self._socket.release.connect(self.release)
